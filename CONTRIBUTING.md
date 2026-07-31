@@ -1,26 +1,26 @@
-# Contributing
+# Como contribuir
 
-Thank you for helping maintain TS SE Tool Community.
+Obrigado por ajudar a manter o TS SE Tool Community.
 
-## Before opening a bug
+## Antes de relatar um erro
 
-1. Reproduce the issue on a copied manual save.
-2. Close the game before editing.
-3. Make one change only.
-4. Reload the save in the editor.
-5. Attach `log.log`, `errorlog.log` and `compatibility.log`.
-6. State the game version, save format, enabled DLCs/mods and exact steps.
-7. Do not upload a personal save publicly. Use an anonymized minimal fixture or offer it privately to a maintainer.
+1. Reproduza o problema em uma cópia de um save manual.
+2. Feche o jogo antes de editar.
+3. Faça apenas uma alteração isolada.
+4. Recarregue o save no editor.
+5. Anexe `log.log`, `errorlog.log` e `compatibility.log`.
+6. Informe a versão do jogo, formato do save, DLCs/mods ativos e passos exatos.
+7. Não publique um save pessoal. Use uma fixture mínima anonimizada ou ofereça o arquivo de forma privada ao mantenedor.
 
 ## Pull requests
 
-- Preserve original copyright and license headers.
-- Keep changes surgical and scoped to one domain.
-- Never bypass modern writer validation or enable the legacy serializer for modern saves.
-- Add log markers for initialization, staging and validation.
-- Include before/after diff evidence and reload/game validation.
-- Build `Release|Any CPU` with .NET Framework 4.7.2.
+- Preserve os cabeçalhos originais de copyright e licença.
+- Mantenha a alteração cirúrgica e limitada a um único domínio.
+- Nunca ignore a validação do writer moderno nem reative o serializador legado para saves modernos.
+- Adicione marcadores de log para inicialização, preparação e validação.
+- Inclua evidência de diff antes/depois, recarga e validação no jogo.
+- Compile em `Release|Any CPU` com .NET Framework 4.7.2.
 
-## Unsupported proposals
+## Propostas não aceitas
 
-Pull requests that enable raw block insertion/deletion, manual unverified accessory paths or graph mutation without complete reference validation will not be merged.
+Não serão incorporadas alterações que habilitem inserção/exclusão bruta de blocos, caminhos manuais de acessórios sem verificação ou mutações do grafo sem validação completa das referências.

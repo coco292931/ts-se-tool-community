@@ -1,10 +1,10 @@
 changelog:
   categories:
-    - title: New features
+    - title: Novos recursos
       labels: [enhancement]
-    - title: Fixes
+    - title: Correções
       labels: [bug]
-    - title: Documentation and maintenance
+    - title: Documentação e manutenção
       labels: [documentation, maintenance]
-    - title: Other changes
+    - title: Outras alterações
       labels: ["*"]

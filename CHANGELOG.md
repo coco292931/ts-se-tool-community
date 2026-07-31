@@ -1,29 +1,37 @@
-# Changelog
+# Histórico de alterações
 
 ## 0.3.11.47 — RC5.1H21 Final
 
-- Declared ETS2 as the supported/tested release target and ATS as experimental/unvalidated.
-- Separated compatibility diagnostics into `compatibility.log`; `errorlog.log` is reserved for actual errors.
-- Configured community repository, release, update and support links.
-- Added final resource matrix and explicit security limitations.
-- Preserved all validated H1–H20 modern writer modules.
+- Define o Euro Truck Simulator 2 como alvo suportado e testado desta versão.
+- Mantém o American Truck Simulator como experimental e ainda não validado.
+- Separa diagnósticos de compatibilidade em `compatibility.log`; `errorlog.log` fica reservado para erros reais.
+- Configura repositório, releases, atualização, suporte e canais comunitários.
+- Inclui a Central de Recursos final e limitações de segurança explícitas.
+- Preserva todos os módulos modernos validados entre H1 e H20.
 
 ## 0.3.11.46 — RC5.1H20
 
-- Added surgical editing of the six AI-driver skills.
-- Added the resource center and read-only extracted `def` index.
-- Enforced verified-only accessory alternatives in both staging and writer.
+- Adiciona edição cirúrgica das seis habilidades dos motoristas IA.
+- Adiciona a Central de Recursos e o índice somente leitura de pastas `def` extraídas.
+- Exige alternativas verificadas no editor e no writer de acessórios.
 
 ## 0.3.11.45 — RC5.1H19.3
 
-- Improved accessory editor UX, filters, search, read-only states, DPI and minimum-resolution handling.
+- Melhora a experiência do editor de acessórios, filtros, pesquisa, estados somente leitura, DPI e resolução mínima.
 
 ## 0.3.11.44 — RC5.1H19.2
 
-- Fixed accessory editor initialization and safe splitter layout.
+- Corrige a inicialização do editor de acessórios e o layout seguro do divisor.
 
-## Earlier RC5.1 milestones
+## Marcos anteriores da RC5.1
 
-- Modern compatibility layer, profile/company writer, fleet maintenance, convoy tools, visited cities, garages, markets, controlled trailer switching and verified steering/accessory editing.
+- Camada de compatibilidade moderna.
+- Writer de perfil e empresa.
+- Manutenção de frota.
+- Ferramentas de comboio.
+- Cidades visitadas e garagens.
+- Mercados.
+- Troca controlada de reboques.
+- Edição verificada de volante e acessórios.
 
-See the commit history and release notes for detailed validation evidence.
+Consulte o histórico de commits e as notas da versão para as evidências detalhadas de validação.

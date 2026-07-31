@@ -1,23 +1,27 @@
-# Compatibility
+# Compatibilidade
 
 ## Euro Truck Simulator 2
 
-- Publicly supported target of `0.3.11.47`.
-- Main community validation: modern save format `97`.
-- Existing compatibility handling declares save formats `61–97`, but the strongest evidence is for the tested modern fixture.
-- Game updates can change save fields or reference graphs. Check issues before editing after a major update.
+- Alvo publicamente suportado pela versão `0.3.11.47`.
+- Validação comunitária principal realizada em save moderno de formato `97`.
+- A camada existente reconhece formatos de save `61–97`, mas a evidência mais forte é a fixture moderna efetivamente testada.
+- Atualizações do jogo podem alterar campos e grafos de referência. Consulte as Issues antes de editar após uma atualização importante.
 
 ## American Truck Simulator
 
-ATS is experimental and unvalidated in this release because the maintainer did not have an ATS test environment. This is not a blocker for the ETS2 release.
+O ATS é **experimental e não validado** nesta versão, pois o mantenedor não possui um ambiente de teste do jogo. Isso não bloqueia a distribuição destinada ao ETS2.
 
-ATS reports are welcome when users:
+Relatos voluntários de ATS devem:
 
-- work on a copied save;
-- provide the ATS version and save format;
-- make one isolated change;
-- attach all three logs;
-- confirm reload and in-game behavior;
-- provide an anonymized before/after diff when possible.
+- usar uma cópia do save;
+- informar versão do ATS e formato do save;
+- realizar uma única alteração isolada;
+- anexar os três arquivos de log;
+- confirmar recarga no editor e funcionamento no jogo;
+- fornecer, quando possível, um diff anonimizado antes/depois.
 
-No claim of ATS support should be made until those tests pass across the critical domains.
+Nenhuma declaração de suporte ao ATS deve ser feita até que os testes críticos sejam concluídos.
+
+## Atualização automática
+
+O verificador de versão consulta `latest.txt`. O download automático herdado não faz parte da homologação H21. Utilize a página **Releases** e confira `SHA256SUMS.txt` antes de executar o arquivo.

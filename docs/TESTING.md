@@ -1,18 +1,18 @@
-# Final regression protocol
+# Protocolo final de regressão
 
-1. Build with zero errors and only the three historical warnings.
-2. Open version `0.3.11.47`.
-3. Load a copied ETS2 manual save.
-4. Confirm the H21 initialization marker.
-5. Open the final resource center.
-6. Confirm `errorlog.log` stays empty during normal loading.
-7. Confirm compatibility diagnostics are written to `compatibility.log`.
-8. Edit one AI-driver skill, save once and reload.
-9. Apply one verified accessory alternative, save once and reload.
-10. Diff the timestamped backup and final `game.sii`.
-11. Open the save in ETS2 and inspect the changed domains and regressions.
-12. Confirm the About screen, repository link and support information.
-13. Confirm unsafe operations remain disabled.
-14. Verify the release ZIP with `SHA256SUMS.txt`.
+1. Compilar com zero erros e somente os três avisos históricos.
+2. Abrir a versão `0.3.11.47`.
+3. Carregar uma cópia de save manual do ETS2.
+4. Confirmar o marcador de inicialização H21.
+5. Abrir a Central de Recursos final.
+6. Confirmar que `errorlog.log` permanece vazio durante um carregamento normal.
+7. Confirmar que diagnósticos de compatibilidade são gravados em `compatibility.log`.
+8. Alterar uma habilidade de motorista IA, salvar uma vez e recarregar.
+9. Aplicar uma alternativa verificada de acessório, salvar uma vez e recarregar.
+10. Comparar o backup com data/hora e o `game.sii` final.
+11. Abrir o save no ETS2 e verificar os domínios alterados e as regressões principais.
+12. Conferir a tela Sobre, o repositório e os dados de suporte.
+13. Confirmar que operações inseguras continuam desabilitadas.
+14. Validar o ZIP da release com `SHA256SUMS.txt`.
 
-ATS is not part of the H21 acceptance gate.
+O ATS não faz parte do critério de aceite da H21.

@@ -1,36 +1,48 @@
-name: ATS experimental test report
-about: Submit structured evidence from American Truck Simulator
+name: Relatório experimental do ATS
+description: Envie evidências estruturadas de um teste no American Truck Simulator
+title: "[ATS experimental]: "
 labels: [ATS, experimental]
 body:
   - type: markdown
     attributes:
-      value: ATS is experimental and unvalidated. Never test on your only save.
+      value: O ATS é experimental e não validado. Nunca teste no seu único save.
   - type: checkboxes
+    id: condicoes
     attributes:
-      label: Test conditions
+      label: Condições do teste
       options:
-        - label: I used a copied manual save and kept ATS closed while editing.
+        - label: Usei uma cópia de save manual e mantive o ATS fechado durante a edição.
           required: true
-        - label: I made one isolated change and kept the timestamped backup.
+        - label: Fiz uma alteração isolada e preservei o backup com data e hora.
           required: true
   - type: input
+    id: versao_ats
     attributes:
-      label: ATS version
-    validations: {required: true}
+      label: Versão do ATS
+    validations:
+      required: true
   - type: input
+    id: formato_save
     attributes:
-      label: Save format
-    validations: {required: true}
+      label: Formato do save
+    validations:
+      required: true
   - type: textarea
+    id: recurso_passos
     attributes:
-      label: Tested feature and exact steps
-    validations: {required: true}
+      label: Recurso testado e passos exatos
+    validations:
+      required: true
   - type: textarea
+    id: resultado
     attributes:
-      label: Reload and in-game result
-    validations: {required: true}
+      label: Resultado da recarga e do teste no jogo
+    validations:
+      required: true
   - type: textarea
+    id: anexos
     attributes:
-      label: Attachments
-      description: Attach all three logs and an anonymized before/after diff.
-    validations: {required: true}
+      label: Anexos
+      description: Anexe os três logs e um diff anonimizado antes/depois.
+    validations:
+      required: true

@@ -1,39 +1,52 @@
-name: Bug report
-about: Report a reproducible ETS2 problem
+name: Relatar um erro
+description: Informe um problema reproduzível no Euro Truck Simulator 2
+title: "[Erro]: "
 labels: [bug, needs-triage]
 body:
   - type: checkboxes
+    id: seguranca
     attributes:
-      label: Safety checklist
+      label: Lista de segurança
       options:
-        - label: I tested on a copied manual save with the game closed.
+        - label: Testei em uma cópia de save manual com o jogo fechado.
           required: true
-        - label: I made one isolated change.
+        - label: Fiz apenas uma alteração isolada.
           required: true
-        - label: I removed personal information from attachments.
+        - label: Removi dados pessoais dos anexos.
           required: true
   - type: input
+    id: versao_programa
     attributes:
-      label: TS SE Tool version
+      label: Versão do TS SE Tool
       placeholder: 0.3.11.47
-    validations: {required: true}
+    validations:
+      required: true
   - type: input
+    id: versao_jogo
     attributes:
-      label: ETS2 version and save format
-    validations: {required: true}
+      label: Versão do ETS2 e formato do save
+    validations:
+      required: true
   - type: textarea
+    id: passos
     attributes:
-      label: Steps to reproduce
-    validations: {required: true}
+      label: Passos para reproduzir
+    validations:
+      required: true
   - type: textarea
+    id: resultado
     attributes:
-      label: Expected and actual result
-    validations: {required: true}
+      label: Resultado esperado e resultado obtido
+    validations:
+      required: true
   - type: textarea
+    id: dlcs_mods
     attributes:
-      label: DLCs and mods relevant to the test
+      label: DLCs e mods relevantes para o teste
   - type: textarea
+    id: evidencias
     attributes:
-      label: Logs and diff
-      description: Attach log.log, errorlog.log, compatibility.log and a minimal anonymized diff.
-    validations: {required: true}
+      label: Logs e diff
+      description: Anexe log.log, errorlog.log, compatibility.log e um diff mínimo anonimizado.
+    validations:
+      required: true

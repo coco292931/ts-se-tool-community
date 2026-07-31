@@ -1,19 +1,26 @@
-name: Feature request
-about: Propose a safe, testable improvement
+name: Solicitar um recurso
+description: Proponha uma melhoria segura e testável
+title: "[Recurso]: "
 labels: [enhancement]
 body:
   - type: textarea
+    id: problema
     attributes:
-      label: User problem
-    validations: {required: true}
+      label: Problema do usuário
+    validations:
+      required: true
   - type: textarea
+    id: comportamento
     attributes:
-      label: Proposed behavior
-    validations: {required: true}
+      label: Comportamento proposto
+    validations:
+      required: true
   - type: textarea
+    id: blocos
     attributes:
-      label: Save blocks and references affected
-      description: Explain the expected graph impact and how it can be validated.
+      label: Blocos e referências do save afetados
+      description: Explique o impacto esperado no grafo e como ele pode ser validado.
   - type: textarea
+    id: evidencias
     attributes:
-      label: Test evidence available
+      label: Evidências de teste disponíveis

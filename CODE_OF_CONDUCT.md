@@ -1,3 +1,7 @@
-# Community Conduct
+# Código de conduta da comunidade
 
-Be respectful, technical and constructive. Do not harass contributors, demand deadlines, distribute other authors' work without permission, or encourage piracy. Reports should focus on reproducible behavior and evidence. Maintainers may remove abusive, off-topic or unsafe content.
+Seja respeitoso, técnico e construtivo.
+
+Não são permitidos assédio, ataques pessoais, exigências de prazo, distribuição não autorizada do trabalho de terceiros, incentivo à pirataria ou publicação de dados pessoais contidos em saves.
+
+Relatos devem se concentrar em comportamento reproduzível, passos claros e evidências. O mantenedor poderá remover conteúdo abusivo, inseguro, fora do tema ou sem relação com o projeto.
