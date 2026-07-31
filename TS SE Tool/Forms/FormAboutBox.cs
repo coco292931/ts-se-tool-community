@@ -1,4 +1,4 @@
-﻿/*
+/*
    Copyright 2016-2022 LIPtoH <liptoh.codebase@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +51,7 @@ namespace TS_SE_Tool
             labelCopyright.Text = Utilities.AssemblyData.AssemblyCopyright;
 
             labelETS2version.Text = String.Join(" - ", MainForm.SupportedSavefileVersionETS2.Select(p => p.ToString()).ToArray()) + " (" + MainForm.SupportedGameVersionETS2 + ")";
-            labelATSversion.Text = "Experimental / not validated in RC5.1H21 community release";
-
+            labelATSversion.Text = "Experimental / not validated in RC5.1H22 community release";
             //
             string[][] referencies = { 
                 new string[] {"SII Decrypt", "https://github.com/ncs-sniper/SII_Decrypt"},
@@ -80,7 +79,7 @@ namespace TS_SE_Tool
                                        "Instagram: @fabio.meskita" + Environment.NewLine +
                                        "Instagram link: https://www.instagram.com/fabio.meskita/" + Environment.NewLine +
                                        "Repository: " + Utilities.Web_Utilities.External.linkGithub + Environment.NewLine +
-                                       "ETS2 validation: modern save version 97" + Environment.NewLine +
+                                       "ETS2 validation: version 1.60 / save format 97" + Environment.NewLine +
                                        "ATS status: experimental / not validated" +
                                        Environment.NewLine + Environment.NewLine;
 

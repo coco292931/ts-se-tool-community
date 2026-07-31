@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -414,7 +414,7 @@ namespace TS_SE_Tool
         {
             return new string[]
             {
-                "SUPORTADO E TESTADO | Euro Truck Simulator 2 | saves 61-97; validação comunitária concluída no save moderno 97",
+                "TESTADO E VALIDADO | Euro Truck Simulator 2 1.60 | save 97; formatos 61-96 reconhecidos, sem homologação integral",
                 "EXPERIMENTAL / NÃO VALIDADO | American Truck Simulator | sem ambiente ATS disponível; não é suporte oficial desta release",
                 "HOMOLOGADO | Perfil, empresa, saldo, experiência, habilidades e cores | writer moderno cirúrgico",
                 "HOMOLOGADO | Caminhões e reboques próprios | manutenção, placa, combustível, odômetro e operações em lote",
@@ -439,14 +439,14 @@ namespace TS_SE_Tool
         {
             string path = Path.Combine(
                 Application.StartupPath,
-                "MATRIZ_RECURSOS_H21_FINAL.txt");
+                "MATRIZ_RECURSOS_H22_FINAL.txt");
             File.WriteAllLines(
                 path,
                 GetModernFeatureMatrixLinesH20(),
                 new UTF8Encoding(true));
             MessageBox.Show(
                 "Matriz exportada para:\n" + path,
-                "H21 — matriz final de recursos",
+                "H22 — matriz final de recursos",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
         }
@@ -537,7 +537,7 @@ namespace TS_SE_Tool
                 File.WriteAllLines(reportPath, report, new UTF8Encoding(true));
 
                 IO_Utilities.LogWriter(
-                    "RC5.1H21 extracted-def catalog indexed: root=" + root +
+                    "RC5.1H22 extracted-def catalog indexed: root=" + root +
                     ", sii=" + files.Count.ToString(CultureInfo.InvariantCulture) +
                     ", truck=" + truck.ToString(CultureInfo.InvariantCulture) +
                     ", trailer=" + trailer.ToString(CultureInfo.InvariantCulture) +
@@ -709,7 +709,7 @@ namespace TS_SE_Tool
             }
 
             IO_Utilities.LogWriter(
-                "RC5.1H21 final release initialized: ets2_tested=true" +
+                "RC5.1H22 release initialized: ets2_version=1.60, ets2_tested=true" +
                 ", ets2_save_version_max=97, ats_validated=false" +
                 ", driver_skill_editor=true, driver_hire_fire=false" +
                 ", raw_vehicle_editor=false, extracted_def_catalog=read_only" +

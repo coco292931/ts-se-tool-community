@@ -1,4 +1,4 @@
-﻿/*
+/*
    Copyright 2016-2022 LIPtoH <liptoh.codebase@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,12 +41,11 @@ namespace TS_SE_Tool.Utilities
         internal static Web_Utilities External = new Web_Utilities();
 
         internal string linkCheckVersion    = "https://raw.githubusercontent.com/fabiomesquita01/ts-se-tool-community/main/latest.txt";
-        internal string linkDownloadVersion = "https://github.com/fabiomesquita01/ts-se-tool-community/releases/latest";
+        internal string linkDownloadVersion = "https://github.com/fabiomesquita01/ts-se-tool-community/releases/latest/download/TS.SE.Tool.latest.zip";
         internal string linkYoutubeTutorial = "https://rebrand.ly/TS-SET-Tutorial";
 
         internal string linkCheckVersion2 = "https://raw.githubusercontent.com/fabiomesquita01/ts-se-tool-community/main/latest.txt";
-        internal string linkDownloadVersion2 = "https://github.com/fabiomesquita01/ts-se-tool-community/releases/latest";
-
+        internal string linkDownloadVersion2 = "https://github.com/fabiomesquita01/ts-se-tool-community/releases/latest/download/TS.SE.Tool.latest.zip";
         internal string linkHelpDeveloper = "https://www.paypal.me/LIPtoHCode";
         internal string linkMailDeveloper = "fabiomalmsteen@gmail.com";
 

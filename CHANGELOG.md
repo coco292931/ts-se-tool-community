@@ -1,3 +1,10 @@
+## 0.3.11.48 — RC5.1H22 Final
+
+- Corrigido o download automático para o asset estável `TS.SE.Tool.latest.zip`.
+- Mantida a validação SHA-512 antes da atualização.
+- Compatibilidade documentada como ETS2 1.60 + save 97 testado e validado.
+- Formatos 61–96 permanecem reconhecidos, sem homologação integral declarada.
+- Tela Sobre, Central de Recursos, GitHub Pages e release sincronizados.
 # Histórico de alterações
 
 ## 0.3.11.47 — RC5.1H21 Final

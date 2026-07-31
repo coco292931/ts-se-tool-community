@@ -7,7 +7,7 @@
 
 Continuação comunitária do **TS SE Tool**, editor de saves para Windows com foco no **Euro Truck Simulator 2**.
 
-> **Versão atual:** `0.3.11.47 — RC5.1H21 Final`  
+> **Versão atual:** `0.3.11.48 — RC5.1H22 Final`  
 > **Suporte validado:** Euro Truck Simulator 2 **1.60**, save moderno de **formato 97**  
 > **American Truck Simulator:** experimental e não validado nesta versão
 
@@ -56,13 +56,13 @@ O writer moderno preserva IDs, referências, ordem e quantidade das listas. Oper
 
 ## Compatibilidade
 
-A validação comunitária principal foi concluída no **Euro Truck Simulator 2 1.60**, usando save moderno de **formato 97**. Esta é a combinação efetivamente testada; atualizações posteriores do jogo podem alterar o schema. Consulte [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
+A validação comunitária principal foi concluída no **Euro Truck Simulator 2 1.60**, usando save moderno de **formato 97**. Os formatos 61–96 continuam reconhecidos pela camada de compatibilidade, mas não foram integralmente homologados nesta release.
 
 O ATS não foi testado pelo mantenedor e não faz parte do aceite desta versão. Relatórios voluntários devem usar o formulário específico em **Issues**.
 
 ## Download
 
-Use somente a seção [Releases](https://github.com/fabiomesquita01/ts-se-tool-community/releases/latest). Verifique o arquivo `SHA256SUMS.txt` antes de executar. Nesta versão, prefira o download manual pela página Releases; o fluxo automático herdado de atualização não faz parte da homologação H21.
+Use somente a seção [Releases](https://github.com/fabiomesquita01/ts-se-tool-community/releases/latest). Verifique `SHA256SUMS.txt` antes de executar. Usuários da 0.3.11.47 precisam instalar a 0.3.11.48 manualmente uma vez; a partir da H22, o atualizador interno usa o asset estável `TS.SE.Tool.latest.zip`, publicado na release mais recente e validado por SHA-512.
 
 ## Compilação
 

@@ -1,18 +1,12 @@
-# Protocolo final de regressão
+# Testes da RC5.1H22
 
-1. Compilar com zero erros e somente os três avisos históricos.
-2. Abrir a versão `0.3.11.47`.
-3. Carregar uma cópia de save manual do ETS2.
-4. Confirmar o marcador de inicialização H21.
-5. Abrir a Central de Recursos final.
-6. Confirmar que `errorlog.log` permanece vazio durante um carregamento normal.
-7. Confirmar que diagnósticos de compatibilidade são gravados em `compatibility.log`.
-8. Alterar uma habilidade de motorista IA, salvar uma vez e recarregar.
-9. Aplicar uma alternativa verificada de acessório, salvar uma vez e recarregar.
-10. Comparar o backup com data/hora e o `game.sii` final.
-11. Abrir o save no ETS2 e verificar os domínios alterados e as regressões principais.
-12. Conferir a tela Sobre, o repositório e os dados de suporte.
-13. Confirmar que operações inseguras continuam desabilitadas.
-14. Validar o ZIP da release com `SHA256SUMS.txt`.
-
-O ATS não faz parte do critério de aceite da H21.
+1. Confirmar build Release/Any CPU com zero erros.
+2. Abrir `TS SE Tool.exe` e confirmar versão `0.3.11.48`.
+3. Abrir a tela Sobre e confirmar `ETS2 1.60 / save 97` e ATS experimental.
+4. Confirmar no log o marcador `RC5.1H22 release initialized`.
+5. Carregar uma cópia de save ETS2 1.60 no formato 97 sem salvar.
+6. Executar uma alteração isolada, salvar uma única vez e recarregar.
+7. Abrir o save no ETS2 e validar o resultado.
+8. Confirmar que `errorlog.log` contém somente erros reais e que diagnósticos ficam em `compatibility.log`.
+9. Testar **Check for updates**; o download deve usar `TS.SE.Tool.latest.zip` e passar na validação SHA-512.
+10. Confirmar que os recursos bloqueados por segurança permanecem indisponíveis.

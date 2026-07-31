@@ -3,23 +3,17 @@
 ## Euro Truck Simulator 2
 
 - **Versão do jogo testada e validada:** `1.60`.
-- **Formato de save validado:** `97`.
-- **Plataforma validada:** Windows, com a versão comunitária `0.3.11.47 — RC5.1H21 Final`.
-- A camada de compatibilidade reconhece formatos de save `61–97`, mas a evidência de homologação desta release corresponde especificamente ao **ETS2 1.60 com save 97**.
+- **Formato de save testado e validado:** `97`.
+- **Versão do editor:** `0.3.11.48 — RC5.1H22 Final`.
+- **Plataforma:** Windows com .NET Framework 4.7.2.
+- Os formatos de save `61–96` continuam reconhecidos pela camada de compatibilidade, mas não foram integralmente homologados nesta release.
 
-A indicação “testado e validado no ETS2 1.60” não representa garantia automática para versões posteriores do jogo. Depois de uma atualização do ETS2, use apenas uma cópia de save manual, preserve o backup e consulte os Issues antes de editar.
+A indicação de compatibilidade não é uma garantia automática para versões posteriores do ETS2, DLCs ou mods. Trabalhe em uma cópia de save manual, mantenha o jogo fechado e preserve o backup criado antes da gravação.
 
 ## American Truck Simulator
 
-O ATS permanece **experimental e não validado** nesta release porque não houve ambiente real de teste disponível. Isso não bloqueia a publicação voltada ao ETS2.
+O ATS permanece **experimental e não validado**, pois não houve ambiente real de teste. Relatos voluntários devem informar versão do jogo, formato do save, DLCs/mods e anexar `log.log`, `errorlog.log` e `compatibility.log`.
 
-Relatórios voluntários de ATS são bem-vindos quando o usuário:
+## Atualização do programa
 
-- trabalha em uma cópia do save;
-- informa a versão do ATS e o formato do save;
-- executa uma única alteração isolada;
-- anexa `log.log`, `errorlog.log` e `compatibility.log`;
-- confirma a recarga no editor e o funcionamento dentro do jogo;
-- fornece, quando possível, um diff anonimizado antes/depois.
-
-Nenhuma afirmação de suporte ao ATS deve ser feita antes de esses testes cobrirem os domínios críticos.
+O verificador consulta `latest.txt`. O download automático usa o endereço estável `releases/latest/download/TS.SE.Tool.latest.zip` e valida o pacote com SHA-512 antes de iniciar o atualizador. O download manual pela página Releases permanece disponível.

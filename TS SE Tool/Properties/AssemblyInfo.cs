@@ -1,4 +1,4 @@
-﻿/*
+/*
    Copyright 2016-2020 LIPtoH <liptoh.codebase@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TS SE Tool")]
-[assembly: AssemblyDescription("Community-maintained save editor for Euro Truck Simulator 2; ATS is experimental and unvalidated")]
+[assembly: AssemblyDescription("Community-maintained save editor validated on Euro Truck Simulator 2 1.60 / save format 97; ATS is experimental")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("TS SE Tool")]
@@ -47,5 +47,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.3.11.47")]
-[assembly: AssemblyFileVersion("0.3.11.47")]
+[assembly: AssemblyVersion("0.3.11.48")]
+[assembly: AssemblyFileVersion("0.3.11.48")]

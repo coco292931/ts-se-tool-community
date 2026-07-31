@@ -1,4 +1,4 @@
-﻿/*
+/*
    Copyright 2016-2022 LIPtoH <liptoh.codebase@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -168,9 +168,9 @@ namespace TS_SE_Tool
                 ProgSettingsV.ProgramVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
                 SupportedSavefileVersionETS2 = new int[] { 61, 97 }; //Full serializer up to 74; 75-97 RC5 compatibility
-                SupportedGameVersionETS2 = "1.43.x - 1.60.x (community release tested on save version 97)"; //RC5.1H21 tested range
+                SupportedGameVersionETS2 = "ETS2 1.60 / save 97 tested and validated; formats 61-96 recognized"; //RC5.1H22 evidence scope
                 //SupportedSavefileVersionATS;
-                SupportedGameVersionATS = "Experimental / not validated in RC5.1H21"; //No ATS test environment available
+                SupportedGameVersionATS = "Experimental / not validated in RC5.1H22"; //No ATS test environment available
 
                 comboBoxRootFolders.FlatStyle =
                 comboBoxProfiles.FlatStyle =
