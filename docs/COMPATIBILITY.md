@@ -2,26 +2,24 @@
 
 ## Euro Truck Simulator 2
 
-- Alvo publicamente suportado pela versão `0.3.11.47`.
-- Validação comunitária principal realizada em save moderno de formato `97`.
-- A camada existente reconhece formatos de save `61–97`, mas a evidência mais forte é a fixture moderna efetivamente testada.
-- Atualizações do jogo podem alterar campos e grafos de referência. Consulte as Issues antes de editar após uma atualização importante.
+- **Versão do jogo testada e validada:** `1.60`.
+- **Formato de save validado:** `97`.
+- **Plataforma validada:** Windows, com a versão comunitária `0.3.11.47 — RC5.1H21 Final`.
+- A camada de compatibilidade reconhece formatos de save `61–97`, mas a evidência de homologação desta release corresponde especificamente ao **ETS2 1.60 com save 97**.
+
+A indicação “testado e validado no ETS2 1.60” não representa garantia automática para versões posteriores do jogo. Depois de uma atualização do ETS2, use apenas uma cópia de save manual, preserve o backup e consulte os Issues antes de editar.
 
 ## American Truck Simulator
 
-O ATS é **experimental e não validado** nesta versão, pois o mantenedor não possui um ambiente de teste do jogo. Isso não bloqueia a distribuição destinada ao ETS2.
+O ATS permanece **experimental e não validado** nesta release porque não houve ambiente real de teste disponível. Isso não bloqueia a publicação voltada ao ETS2.
 
-Relatos voluntários de ATS devem:
+Relatórios voluntários de ATS são bem-vindos quando o usuário:
 
-- usar uma cópia do save;
-- informar versão do ATS e formato do save;
-- realizar uma única alteração isolada;
-- anexar os três arquivos de log;
-- confirmar recarga no editor e funcionamento no jogo;
-- fornecer, quando possível, um diff anonimizado antes/depois.
+- trabalha em uma cópia do save;
+- informa a versão do ATS e o formato do save;
+- executa uma única alteração isolada;
+- anexa `log.log`, `errorlog.log` e `compatibility.log`;
+- confirma a recarga no editor e o funcionamento dentro do jogo;
+- fornece, quando possível, um diff anonimizado antes/depois.
 
-Nenhuma declaração de suporte ao ATS deve ser feita até que os testes críticos sejam concluídos.
-
-## Atualização automática
-
-O verificador de versão consulta `latest.txt`. O download automático herdado não faz parte da homologação H21. Utilize a página **Releases** e confira `SHA256SUMS.txt` antes de executar o arquivo.
+Nenhuma afirmação de suporte ao ATS deve ser feita antes de esses testes cobrirem os domínios críticos.

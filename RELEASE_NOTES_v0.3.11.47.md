@@ -4,7 +4,7 @@ Primeira versão comunitária final da continuação protegida para saves modern
 
 ## Destaques
 
-- ETS2 é o alvo suportado e testado; a validação principal usou save moderno de formato 97.
+- **Euro Truck Simulator 2 1.60** é o alvo testado e validado; a validação principal usou save moderno de **formato 97**.
 - Edição de habilidades de motoristas IA, acessórios verificados, mercados, garagens, frota e ferramentas seguras de comboio.
 - Diagnósticos de compatibilidade separados em `compatibility.log`; erros reais permanecem em `errorlog.log`.
 - Links comunitários para repositório, releases, suporte e Instagram.

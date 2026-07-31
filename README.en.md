@@ -3,7 +3,7 @@
 Community-maintained continuation of **TS SE Tool**, a guarded Windows save editor focused on **Euro Truck Simulator 2**.
 
 > **Current release:** `0.3.11.47 — RC5.1H21 Final`  
-> **Validated target:** Euro Truck Simulator 2, modern save format 97  
+> **Validated target:** Euro Truck Simulator 2 **1.60**, modern save **format 97**  
 > **American Truck Simulator:** experimental and not validated
 
 [Download](https://github.com/fabiomesquita01/ts-se-tool-community/releases/latest) · [Report an issue](https://github.com/fabiomesquita01/ts-se-tool-community/issues/new/choose) · [Português](README.md)
@@ -28,7 +28,7 @@ Close the game, use a copied manual save, preserve the backup, make one controll
 
 ## Compatibility
 
-ETS2 was validated with modern save format 97. ATS is experimental and unvalidated. See [compatibility documentation](docs/COMPATIBILITY.md).
+ETS2 was tested and validated on **version 1.60** with modern save **format 97**. Later game versions are not implicitly guaranteed. ATS is experimental and unvalidated. See [compatibility documentation](docs/COMPATIBILITY.md).
 
 ## Credits and support
 

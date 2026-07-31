@@ -2,13 +2,13 @@
 
 [![Compilação](https://github.com/fabiomesquita01/ts-se-tool-community/actions/workflows/build.yml/badge.svg)](https://github.com/fabiomesquita01/ts-se-tool-community/actions/workflows/build.yml)
 [![Licença](https://img.shields.io/badge/licença-Apache--2.0-blue.svg)](LICENSE)
-[![ETS2](https://img.shields.io/badge/ETS2-validado%20no%20save%2097-4caf50.svg)](docs/COMPATIBILITY.md)
+[![ETS2](https://img.shields.io/badge/ETS2-1.60%20%7C%20save%2097%20validado-4caf50.svg)](docs/COMPATIBILITY.md)
 [![ATS](https://img.shields.io/badge/ATS-experimental%20%2F%20não%20validado-orange.svg)](docs/COMPATIBILITY.md)
 
 Continuação comunitária do **TS SE Tool**, editor de saves para Windows com foco no **Euro Truck Simulator 2**.
 
 > **Versão atual:** `0.3.11.47 — RC5.1H21 Final`  
-> **Suporte validado:** Euro Truck Simulator 2, save moderno de formato 97  
+> **Suporte validado:** Euro Truck Simulator 2 **1.60**, save moderno de **formato 97**  
 > **American Truck Simulator:** experimental e não validado nesta versão
 
 [Download](../../releases/latest) · [Relatar problema](../../issues/new/choose) · [Documentação](docs/) · [English](README.en.md)
@@ -56,7 +56,7 @@ O writer moderno preserva IDs, referências, ordem e quantidade das listas. Oper
 
 ## Compatibilidade
 
-A validação comunitária principal foi concluída no ETS2 usando save moderno de **formato 97**. Atualizações do jogo podem alterar o schema. Consulte [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
+A validação comunitária principal foi concluída no **Euro Truck Simulator 2 1.60**, usando save moderno de **formato 97**. Esta é a combinação efetivamente testada; atualizações posteriores do jogo podem alterar o schema. Consulte [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
 
 O ATS não foi testado pelo mantenedor e não faz parte do aceite desta versão. Relatórios voluntários devem usar o formulário específico em **Issues**.
 

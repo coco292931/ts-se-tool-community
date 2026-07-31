@@ -1,40 +1,56 @@
-name: Relatar um erro
-description: Informe um problema reproduzível no Euro Truck Simulator 2
-title: "[Erro]: "
-labels: [bug, needs-triage]
+name: Relatar problema
+description: Informe um problema reproduzível no ETS2 usando uma cópia de save manual.
+title: "[Bug]: "
+labels:
+  - bug
+  - needs-triage
 body:
-  - type: checkboxes
-    id: seguranca
+  - type: markdown
     attributes:
-      label: Lista de segurança
+      value: |
+        A versão 0.3.11.47 foi testada e validada no Euro Truck Simulator 2 1.60 com save de formato 97. Para versões diferentes, informe todos os detalhes e mantenha um backup.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Verificações de segurança
       options:
         - label: Testei em uma cópia de save manual com o jogo fechado.
           required: true
         - label: Fiz apenas uma alteração isolada.
           required: true
-        - label: Removi dados pessoais dos anexos.
+        - label: Removi informações pessoais dos anexos.
           required: true
   - type: input
-    id: versao_programa
+    id: tool_version
     attributes:
       label: Versão do TS SE Tool
       placeholder: 0.3.11.47
     validations:
       required: true
   - type: input
-    id: versao_jogo
+    id: ets2_version
     attributes:
-      label: Versão do ETS2 e formato do save
+      label: Versão do ETS2
+      description: A versão homologada nesta release é a 1.60.
+      placeholder: 1.60
+    validations:
+      required: true
+  - type: input
+    id: save_format
+    attributes:
+      label: Formato do save
+      description: O formato validado nesta release é o 97.
+      placeholder: 97
     validations:
       required: true
   - type: textarea
-    id: passos
+    id: reproduce
     attributes:
       label: Passos para reproduzir
     validations:
       required: true
   - type: textarea
-    id: resultado
+    id: result
     attributes:
       label: Resultado esperado e resultado obtido
     validations:
@@ -42,9 +58,9 @@ body:
   - type: textarea
     id: dlcs_mods
     attributes:
-      label: DLCs e mods relevantes para o teste
+      label: DLCs e mods relevantes
   - type: textarea
-    id: evidencias
+    id: evidence
     attributes:
       label: Logs e diff
       description: Anexe log.log, errorlog.log, compatibility.log e um diff mínimo anonimizado.

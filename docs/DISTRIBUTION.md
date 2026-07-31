@@ -6,7 +6,7 @@ Toda divulgação deve informar:
 
 - continuação comunitária gratuita e de código aberto;
 - atribuição ao autor original LIPtoH;
-- ETS2 suportado e ATS não validado;
+- ETS2 **1.60** com save **97** testado e validado; ATS não validado;
 - obrigação de backup e uso por conta e risco;
 - versão e SHA-256 exatos;
 - GitHub Issues como canal técnico;

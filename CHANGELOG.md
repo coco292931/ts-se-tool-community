@@ -1,6 +1,7 @@
 # Histórico de alterações
 
 ## 0.3.11.47 — RC5.1H21 Final
+- Documentada explicitamente a homologação no Euro Truck Simulator 2 1.60 com save de formato 97.
 
 - Define o Euro Truck Simulator 2 como alvo suportado e testado desta versão.
 - Mantém o American Truck Simulator como experimental e ainda não validado.
