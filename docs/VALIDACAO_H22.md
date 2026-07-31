@@ -20,3 +20,15 @@
 ## Limites preservados
 
 Contratar/demitir motoristas, edição bruta do grafo, colagem completa de veículos, reordenação estrutural e caminhos de acessórios não verificados continuam bloqueados.
+## Resultado da validação em ambiente real
+
+Validação concluída em **31/07/2026**, no Windows e no **Euro Truck Simulator 2 1.60**:
+
+- executável `0.3.11.48` inicializado normalmente;
+- RC5.1H22 identificada no log;
+- save moderno de formato `97` carregado;
+- alteração controlada gravada com sucesso;
+- save recarregado pelo editor;
+- save aberto normalmente no ETS2 1.60;
+- nenhum erro real encontrado no log operacional;
+- diagnósticos modernos mantidos separadamente em `compatibility.log`.

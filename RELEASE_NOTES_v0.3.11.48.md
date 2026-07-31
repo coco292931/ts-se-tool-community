@@ -19,3 +19,6 @@ A H22 não libera contratação/demissão de motoristas, editor bruto, colagem c
 ## ATS
 
 American Truck Simulator permanece experimental e não validado.
+## Validação concluída
+
+A versão `0.3.11.48` foi testada com save de formato `97`: leitura, gravação, recarga e abertura posterior no **ETS2 1.60** foram concluídas com sucesso. Os diagnósticos permaneceram em `compatibility.log`, sem erro real no log operacional.
