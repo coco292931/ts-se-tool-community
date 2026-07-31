@@ -1,0 +1,36 @@
+name: ATS experimental test report
+about: Submit structured evidence from American Truck Simulator
+labels: [ATS, experimental]
+body:
+  - type: markdown
+    attributes:
+      value: ATS is experimental and unvalidated. Never test on your only save.
+  - type: checkboxes
+    attributes:
+      label: Test conditions
+      options:
+        - label: I used a copied manual save and kept ATS closed while editing.
+          required: true
+        - label: I made one isolated change and kept the timestamped backup.
+          required: true
+  - type: input
+    attributes:
+      label: ATS version
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: Save format
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Tested feature and exact steps
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Reload and in-game result
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Attachments
+      description: Attach all three logs and an anonymized before/after diff.
+    validations: {required: true}

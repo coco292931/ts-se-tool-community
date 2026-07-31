@@ -1,0 +1,19 @@
+name: Feature request
+about: Propose a safe, testable improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: User problem
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Proposed behavior
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Save blocks and references affected
+      description: Explain the expected graph impact and how it can be validated.
+  - type: textarea
+    attributes:
+      label: Test evidence available

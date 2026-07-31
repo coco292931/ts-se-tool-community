@@ -1,0 +1,39 @@
+name: Bug report
+about: Report a reproducible ETS2 problem
+labels: [bug, needs-triage]
+body:
+  - type: checkboxes
+    attributes:
+      label: Safety checklist
+      options:
+        - label: I tested on a copied manual save with the game closed.
+          required: true
+        - label: I made one isolated change.
+          required: true
+        - label: I removed personal information from attachments.
+          required: true
+  - type: input
+    attributes:
+      label: TS SE Tool version
+      placeholder: 0.3.11.47
+    validations: {required: true}
+  - type: input
+    attributes:
+      label: ETS2 version and save format
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: Expected and actual result
+    validations: {required: true}
+  - type: textarea
+    attributes:
+      label: DLCs and mods relevant to the test
+  - type: textarea
+    attributes:
+      label: Logs and diff
+      description: Attach log.log, errorlog.log, compatibility.log and a minimal anonymized diff.
+    validations: {required: true}
