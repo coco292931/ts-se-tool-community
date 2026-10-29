@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -3250,6 +3250,7 @@ namespace TS_SE_Tool
             InitializeModernSteeringWheelH15();
             InitializeModernAccessoryPackageH19();
             InitializeModernFeatureCompletionH20();
+            InitializeModernDriverHireH23();
         }
     }
 }

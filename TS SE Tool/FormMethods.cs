@@ -167,8 +167,8 @@ namespace TS_SE_Tool
 
                 ProgSettingsV.ProgramVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
-                SupportedSavefileVersionETS2 = new int[] { 61, 97 }; //Full serializer up to 74; 75-97 RC5 compatibility
-                SupportedGameVersionETS2 = "ETS2 1.60 / save 97 tested and validated; formats 61-96 recognized"; //RC5.1H22 evidence scope
+                SupportedSavefileVersionETS2 = new int[] { 61, 102 }; //Full serializer up to 74; 75-102 RC5 compatibility
+                SupportedGameVersionETS2 = "ETS2 1.61 / save 102 tested; formats 61-101 recognized"; //RC5.1H23 evidence scope
                 //SupportedSavefileVersionATS;
                 SupportedGameVersionATS = "Experimental / not validated in RC5.1H22"; //No ATS test environment available
 
