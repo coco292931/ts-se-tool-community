@@ -10,18 +10,31 @@ namespace TS_SE_Tool
 {
     public partial class FormMain
     {
-        // RC5.1H23 - contratar motorista IA em save moderno (formato 75+).
+        // RC5.1H23 - hire and fire AI drivers on modern saves (format above 74).
         //
-        // Modelo descoberto nos saves reais do ETS2 1.61 (formato 102):
-        //  - a garagem tem arrays de tamanho fixo igual a capacidade, com "null" nos lugares vazios;
-        //  - capacidade vem do campo status: 0 = nao comprada, 6 = 1, 2 = 3, 3 = 5;
-        //  - contratar = ocupar um lugar "null" com o driver e preencher hometown/current_city.
+        // Everything below was derived from real ETS2 1.61 / save format 102 saves,
+        // not guessed:
         //
-        // Limite conhecido: nao mexemos em economy.drivers_offer nem em economy.driver_pool.
-        // O jogo faz "troca de lugar" entre esses dois arrays ao contratar, e a escrita em
-        // texto puro nao aceita remocao de linha (o carregador responde
-        // "There are multiple unit trees in the file"). O motorista contratado pode
-        // continuar aparecendo na lista de recrutamento ate o jogo reorganizar o mercado.
+        //   garage.status 6 / 2 / 3  = capacity 1 / 3 / 5
+        //   garage driver arrays are sized to the capacity, empty slots hold "null"
+        //   driver.state low bits are the work state, bit 0x80000000 marks "dismissed"
+        //
+        //   hiring = take a driver out of economy.drivers_offer, occupy a free garage
+        //            slot with it, set hometown / current_city / training_policy and
+        //            register it in player.drivers + driver_flags +
+        //            driver_readiness_timer
+        //   firing = free the garage slot, set bit 0x80000000 on driver.state,
+        //            unregister it from player.drivers + driver_flags +
+        //            driver_readiness_timer and append it to player.dismissed_drivers
+        //
+        // A driver may be owned by at most one of these three containers:
+        // player.drivers, economy.drivers_offer, economy.driver_pool.
+        // Garage slots do not claim ownership. Leaving a driver owned twice - or by
+        // nobody after being pulled out of a container - makes the game loader fail
+        // with the misleading message "There are multiple unit trees in the file".
+        //
+        // Money is deliberately not touched. This is a save editor; reproducing the
+        // in-game hiring fee would be pointless.
 
         internal sealed class ModernHireGarageH23
         {
@@ -33,17 +46,21 @@ namespace TS_SE_Tool
             public override string ToString() { return City + " (" + UsedDrivers + "/" + Capacity + ")"; }
         }
 
-        internal sealed class ModernHireCandidateH23
+        internal sealed class ModernDriverChoiceH23
         {
             public string Id;
+            public string Where;
             public int Experience;
             public string Skills;
-            public override string ToString() { return Id + "  XP " + Experience.ToString(CultureInfo.InvariantCulture) + "  " + Skills; }
+            public override string ToString()
+            {
+                return Id + "  " + Where + "  XP " +
+                    Experience.ToString(CultureInfo.InvariantCulture) + "  " + Skills;
+            }
         }
 
-        private const int ModernHireFeeH23 = 1500;
-
         private ToolStripMenuItem ModernDriverHireMenuH23;
+        private ToolStripMenuItem ModernDriverFireMenuH23;
 
         private static int GetModernGarageCapacityH23(int status)
         {
@@ -53,36 +70,162 @@ namespace TS_SE_Tool
             return 0;
         }
 
-        private static int GetModernBlockEndH23(string[] text, int header)
+        private static int FindModernUnitHeaderH23(List<string> lines, string prefix)
         {
-            for (int index = header + 1; index < text.Length; index++)
+            for (int index = 0; index < lines.Count; index++)
             {
-                if (text[index] == "}")
+                string line = lines[index];
+                if (!line.StartsWith(prefix, StringComparison.Ordinal))
+                    continue;
+                if (line.Length > prefix.Length && line[prefix.Length] == ' ')
                     return index;
             }
-
             return -1;
         }
 
-        private static int GetModernScalarH23(string[] text, int start, int end, string tag, out string value)
+        private static int GetModernBlockEndH23(List<string> lines, int header)
         {
-            value = null;
+            for (int index = header + 1; index < lines.Count; index++)
+                if (lines[index] == "}")
+                    return index;
+            return -1;
+        }
 
+        private static string GetModernFieldH23(List<string> lines, int start, int end, string tag)
+        {
+            string key = " " + tag + ": ";
+            for (int index = start; index < end; index++)
+                if (lines[index].StartsWith(key, StringComparison.Ordinal))
+                    return lines[index].Substring(key.Length).Trim();
+            return null;
+        }
+
+        private static bool SetModernFieldH23(List<string> lines, int start, int end, string tag, string value)
+        {
+            string key = " " + tag + ": ";
             for (int index = start; index < end; index++)
             {
-                if (text[index].StartsWith(" " + tag + ": ", StringComparison.Ordinal))
+                if (!lines[index].StartsWith(key, StringComparison.Ordinal))
+                    continue;
+                lines[index] = key + value;
+                return true;
+            }
+            return false;
+        }
+
+        private static int GetModernArrayCountH23(List<string> lines, string unitPrefix, string tag,
+            out int countIdx, out List<int> itemIdx, out int declared)
+        {
+            countIdx = -1;
+            itemIdx = new List<int>();
+            declared = 0;
+
+            int header = FindModernUnitHeaderH23(lines, unitPrefix);
+            if (header < 0)
+                return -1;
+
+            int end = GetModernBlockEndH23(lines, header);
+            if (end < 0)
+                return -1;
+
+            string countKey = " " + tag + ": ";
+            string itemPrefix = " " + tag + "[";
+
+            for (int index = header + 1; index < end; index++)
+            {
+                if (lines[index].StartsWith(countKey, StringComparison.Ordinal))
                 {
-                    value = text[index].Substring(tag.Length + 3);
-                    if (value != null)
-                        value = value.Trim();
-                    return index;
+                    countIdx = index;
+                    Int32.TryParse(lines[index].Substring(countKey.Length).Trim(),
+                        NumberStyles.Integer, CultureInfo.InvariantCulture, out declared);
+                }
+                else if (lines[index].StartsWith(itemPrefix, StringComparison.Ordinal))
+                {
+                    itemIdx.Add(index);
                 }
             }
 
+            return (countIdx < 0) ? -1 : header;
+        }
+
+        private static bool AppendModernArrayItemH23(List<string> lines, string unitPrefix, string tag, string value)
+        {
+            int countIdx;
+            List<int> itemIdx;
+            int declared;
+
+            if (GetModernArrayCountH23(lines, unitPrefix, tag, out countIdx, out itemIdx, out declared) < 0)
+                return false;
+
+            if (itemIdx.Count != declared)
+                return false;
+
+            int insertAt = (itemIdx.Count > 0) ? itemIdx[itemIdx.Count - 1] + 1 : countIdx + 1;
+
+            lines.Insert(insertAt, " " + tag + "[" + declared.ToString(CultureInfo.InvariantCulture) + "]: " + value);
+            lines[countIdx] = " " + tag + ": " + (declared + 1).ToString(CultureInfo.InvariantCulture);
+            return true;
+        }
+
+        private static bool RemoveModernArrayItemAtH23(List<string> lines, string unitPrefix, string tag, int position)
+        {
+            int countIdx;
+            List<int> itemIdx;
+            int declared;
+
+            if (GetModernArrayCountH23(lines, unitPrefix, tag, out countIdx, out itemIdx, out declared) < 0)
+                return false;
+
+            if (itemIdx.Count != declared)
+                return false;
+
+            if (position < 0 || position >= itemIdx.Count)
+                return false;
+
+            lines.RemoveAt(itemIdx[position]);
+
+            string itemPrefix = " " + tag + "[";
+
+            for (int k = position + 1; k < itemIdx.Count; k++)
+            {
+                int at = itemIdx[k] - 1;
+                if (at < 0 || at >= lines.Count)
+                    return false;
+
+                int colon = lines[at].IndexOf(": ", StringComparison.Ordinal);
+                if (colon < 0)
+                    return false;
+
+                lines[at] = itemPrefix + (k - 1).ToString(CultureInfo.InvariantCulture) + "]: " +
+                    lines[at].Substring(colon + 2).Trim();
+            }
+
+            lines[countIdx] = " " + tag + ": " + (declared - 1).ToString(CultureInfo.InvariantCulture);
+            return true;
+        }
+
+        private static int IndexOfModernArrayItemH23(List<string> lines, string unitPrefix, string tag, string value)
+        {
+            int countIdx;
+            List<int> itemIdx;
+            int declared;
+
+            if (GetModernArrayCountH23(lines, unitPrefix, tag, out countIdx, out itemIdx, out declared) < 0)
+                return -1;
+
+            for (int k = 0; k < itemIdx.Count; k++)
+            {
+                int colon = lines[itemIdx[k]].IndexOf(": ", StringComparison.Ordinal);
+                if (colon < 0)
+                    continue;
+                if (lines[itemIdx[k]].Substring(colon + 2).Trim() == value)
+                    return k;
+            }
+
             return -1;
         }
 
-        internal bool CanUseModernDriverHireH23(out string reason)
+        internal bool CanUseModernDriverToolsH23(out string reason)
         {
             reason = "";
 
@@ -108,17 +251,19 @@ namespace TS_SE_Tool
             if (text == null)
                 return result;
 
-            for (int index = 0; index < text.Length; index++)
+            List<string> lines = new List<string>(text);
+
+            for (int index = 0; index < lines.Count; index++)
             {
-                if (!text[index].StartsWith("garage : ", StringComparison.Ordinal))
+                if (!lines[index].StartsWith("garage : ", StringComparison.Ordinal))
                     continue;
 
-                int end = GetModernBlockEndH23(text, index);
+                int end = GetModernBlockEndH23(lines, index);
                 if (end < 0)
                     continue;
 
-                string statusText;
-                if (GetModernScalarH23(text, index + 1, end, "status", out statusText) < 0)
+                string statusText = GetModernFieldH23(lines, index + 1, end, "status");
+                if (statusText == null)
                     continue;
 
                 int status;
@@ -134,16 +279,14 @@ namespace TS_SE_Tool
 
                 for (int line = index + 1; line < end; line++)
                 {
-                    if (!text[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                    if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
                         continue;
 
-                    int colon = text[line].IndexOf(": ", StringComparison.Ordinal);
+                    int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
                     if (colon < 0)
                         continue;
 
-                    string value = text[line].Substring(colon + 2).Trim();
-
-                    if (value == "null")
+                    if (lines[line].Substring(colon + 2).Trim() == "null")
                         free++;
                     else
                         used++;
@@ -152,7 +295,7 @@ namespace TS_SE_Tool
                 if (free <= 0)
                     continue;
 
-                string id = text[index].Substring("garage : ".Length).TrimEnd(' ', '{').Trim();
+                string id = lines[index].Substring("garage : ".Length).TrimEnd(' ', '{').Trim();
 
                 result.Add(new ModernHireGarageH23
                 {
@@ -167,99 +310,172 @@ namespace TS_SE_Tool
             return result;
         }
 
-        internal List<ModernHireCandidateH23> GetModernHireCandidatesH23()
+        private static string DescribeModernDriverH23(List<string> lines, string driverId)
         {
-            List<ModernHireCandidateH23> result = new List<ModernHireCandidateH23>();
-            string[] text = tempSavefileInMemory;
-            if (text == null)
+            int header = FindModernUnitHeaderH23(lines, "driver_ai : " + driverId);
+            if (header < 0)
+                return "";
+
+            int end = GetModernBlockEndH23(lines, header);
+            if (end < 0)
+                return "";
+
+            int experience = 0;
+            string experienceText = GetModernFieldH23(lines, header + 1, end, "experience_points");
+            if (experienceText != null)
+                Int32.TryParse(experienceText, NumberStyles.Integer, CultureInfo.InvariantCulture, out experience);
+
+            string skills = "";
+            foreach (string tag in new string[] { "adr", "long_dist", "heavy", "fragile", "urgent", "mechanical" })
+            {
+                string value = GetModernFieldH23(lines, header + 1, end, tag);
+                if (value != null)
+                    skills += tag.Substring(0, Math.Min(3, tag.Length)) + value + " ";
+            }
+
+            return experience.ToString(CultureInfo.InvariantCulture) + "|" + skills.Trim();
+        }
+
+        internal List<ModernDriverChoiceH23> GetModernHireCandidatesH23()
+        {
+            List<ModernDriverChoiceH23> result = new List<ModernDriverChoiceH23>();
+            if (tempSavefileInMemory == null)
                 return result;
 
-            HashSet<string> hired = new HashSet<string>(StringComparer.Ordinal);
-            HashSet<string> offered = new HashSet<string>(StringComparer.Ordinal);
+            List<string> lines = new List<string>(tempSavefileInMemory);
 
-            for (int index = 0; index < text.Length; index++)
+            HashSet<string> taken = new HashSet<string>(StringComparer.Ordinal);
+
+            for (int index = 0; index < lines.Count; index++)
             {
-                if (text[index].StartsWith("garage : ", StringComparison.Ordinal))
+                if (lines[index].StartsWith("garage : ", StringComparison.Ordinal))
                 {
-                    int end = GetModernBlockEndH23(text, index);
+                    int end = GetModernBlockEndH23(lines, index);
                     if (end < 0)
                         continue;
 
                     for (int line = index + 1; line < end; line++)
                     {
-                        if (!text[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                        if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
                             continue;
 
-                        int colon = text[line].IndexOf(": ", StringComparison.Ordinal);
+                        int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
                         if (colon < 0)
                             continue;
 
-                        string value = text[line].Substring(colon + 2).Trim();
+                        string value = lines[line].Substring(colon + 2).Trim();
                         if (value.StartsWith("driver.", StringComparison.Ordinal))
-                            hired.Add(value);
+                            taken.Add(value);
                     }
                 }
-                else if (text[index].StartsWith(" drivers_offer[", StringComparison.Ordinal))
+                else if (lines[index].StartsWith(" drivers_offer[", StringComparison.Ordinal))
                 {
-                    int colon = text[index].IndexOf(": ", StringComparison.Ordinal);
+                    int colon = lines[index].IndexOf(": ", StringComparison.Ordinal);
                     if (colon < 0)
                         continue;
 
-                    string value = text[index].Substring(colon + 2).Trim();
-                    if (value.StartsWith("driver.", StringComparison.Ordinal))
-                        offered.Add(value);
+                    string id = lines[index].Substring(colon + 2).Trim();
+                    if (!id.StartsWith("driver.", StringComparison.Ordinal))
+                        continue;
+
+                    if (taken.Contains(id))
+                        continue;
+
+                    string info = DescribeModernDriverH23(lines, id);
+                    if (info.Length == 0)
+                        continue;
+
+                    string[] parts = info.Split(new char[] { '|' }, 2);
+
+                    int experience = 0;
+                    Int32.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out experience);
+
+                    result.Add(new ModernDriverChoiceH23
+                    {
+                        Id = id,
+                        Where = "recrutamento",
+                        Experience = experience,
+                        Skills = parts.Length > 1 ? parts[1] : ""
+                    });
                 }
             }
 
-            foreach (string driverId in offered)
+            return result;
+        }
+
+        internal List<ModernDriverChoiceH23> GetModernFireCandidatesH23()
+        {
+            List<ModernDriverChoiceH23> result = new List<ModernDriverChoiceH23>();
+            if (tempSavefileInMemory == null)
+                return result;
+
+            List<string> lines = new List<string>(tempSavefileInMemory);
+
+            // the player himself is a "driver_player" unit - never offer it for firing
+            string playerDriverId = "";
+            int playerDriverHeader = FindModernUnitHeaderH23(lines, "driver_player");
+            if (playerDriverHeader >= 0)
             {
-                if (hired.Contains(driverId))
+                string[] tokens = lines[playerDriverHeader].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (tokens.Length >= 3)
+                    playerDriverId = tokens[2];
+            }
+
+            Dictionary<string, string> placed = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            for (int index = 0; index < lines.Count; index++)
+            {
+                if (!lines[index].StartsWith("garage : ", StringComparison.Ordinal))
                     continue;
 
-                int header = -1;
-                for (int index = 0; index < text.Length; index++)
-                {
-                    if (text[index] == "driver_ai : " + driverId + " {")
-                    {
-                        header = index;
-                        break;
-                    }
-                }
-
-                if (header < 0)
-                    continue;
-
-                int end = GetModernBlockEndH23(text, header);
+                int end = GetModernBlockEndH23(lines, index);
                 if (end < 0)
                     continue;
 
-                string home;
-                if (GetModernScalarH23(text, header + 1, end, "hometown", out home) < 0)
-                    continue;
+                string garageId = lines[index].Substring("garage : ".Length).TrimEnd(' ', '{').Trim();
+                string city = garageId.StartsWith("garage.", StringComparison.Ordinal)
+                    ? garageId.Substring("garage.".Length) : garageId;
 
-                if (home != "\"\"")
-                    continue;
-
-                string experienceText;
-                int experience = 0;
-                if (GetModernScalarH23(text, header + 1, end, "experience_points", out experienceText) >= 0)
-                    Int32.TryParse(experienceText, NumberStyles.Integer, CultureInfo.InvariantCulture, out experience);
-
-                string skills = "";
-                foreach (string tag in new string[] { "adr", "long_dist", "heavy", "fragile", "urgent", "mechanical" })
+                for (int line = index + 1; line < end; line++)
                 {
-                    string skillText;
-                    if (GetModernScalarH23(text, header + 1, end, tag, out skillText) >= 0)
-                        skills += tag.Substring(0, Math.Min(3, tag.Length)) + skillText + " ";
+                    if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                        continue;
+
+                    int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
+                    if (colon < 0)
+                        continue;
+
+                    string id = lines[line].Substring(colon + 2).Trim();
+                    if (!id.StartsWith("driver.", StringComparison.Ordinal))
+                        continue;
+                    if (id == playerDriverId)
+                        continue;
+
+                    placed[id] = city;
                 }
+            }
 
-                result.Add(new ModernHireCandidateH23
+            foreach (KeyValuePair<string, string> pair in placed)
+            {
+                string info = DescribeModernDriverH23(lines, pair.Key);
+                string[] parts = info.Length == 0 ? new string[] { "0", "" } : info.Split(new char[] { '|' }, 2);
+
+                int experience = 0;
+                Int32.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out experience);
+
+                result.Add(new ModernDriverChoiceH23
                 {
-                    Id = driverId,
+                    Id = pair.Key,
+                    Where = pair.Value,
                     Experience = experience,
-                    Skills = skills.Trim()
+                    Skills = parts.Length > 1 ? parts[1] : ""
                 });
             }
+
+            result.Sort(delegate(ModernDriverChoiceH23 a, ModernDriverChoiceH23 b)
+            {
+                return String.CompareOrdinal(a.Id, b.Id);
+            });
 
             return result;
         }
@@ -267,7 +483,7 @@ namespace TS_SE_Tool
         internal bool HireModernDriverH23(string driverId, string garageId, out string message)
         {
             string reason;
-            if (!CanUseModernDriverHireH23(out reason))
+            if (!CanUseModernDriverToolsH23(out reason))
             {
                 message = reason;
                 return false;
@@ -275,41 +491,30 @@ namespace TS_SE_Tool
 
             message = "";
 
-            List<ModernHireGarageH23> garages = GetModernHireGaragesH23();
-            ModernHireGarageH23 garage = garages.FirstOrDefault(x => x.Id == garageId);
+            ModernHireGarageH23 garage = GetModernHireGaragesH23().FirstOrDefault(x => x.Id == garageId);
             if (garage == null)
             {
                 message = "Garagem sem lugar livre ou inexistente: " + garageId;
                 return false;
             }
 
-            List<ModernHireCandidateH23> candidates = GetModernHireCandidatesH23();
-            if (!candidates.Any(x => x.Id == driverId))
+            if (!GetModernHireCandidatesH23().Any(x => x.Id == driverId))
             {
                 message = "Motorista indisponivel para contratacao: " + driverId;
                 return false;
             }
 
-            string[] text = tempSavefileInMemory;
+            List<string> lines = new List<string>(tempSavefileInMemory);
 
-            // 1) ocupar o lugar vazio da garagem
-            int garageHeader = -1;
-            for (int index = 0; index < text.Length; index++)
-            {
-                if (text[index] == "garage : " + garageId + " {")
-                {
-                    garageHeader = index;
-                    break;
-                }
-            }
-
+            // 1) occupy a free garage slot
+            int garageHeader = FindModernUnitHeaderH23(lines, "garage : " + garageId);
             if (garageHeader < 0)
             {
                 message = "Bloco da garagem nao localizado: " + garageId;
                 return false;
             }
 
-            int garageEnd = GetModernBlockEndH23(text, garageHeader);
+            int garageEnd = GetModernBlockEndH23(lines, garageHeader);
             if (garageEnd < 0)
             {
                 message = "Bloco da garagem incompleto: " + garageId;
@@ -319,14 +524,14 @@ namespace TS_SE_Tool
             int slotLine = -1;
             for (int line = garageHeader + 1; line < garageEnd; line++)
             {
-                if (!text[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
                     continue;
 
-                int colon = text[line].IndexOf(": ", StringComparison.Ordinal);
+                int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
                 if (colon < 0)
                     continue;
 
-                if (text[line].Substring(colon + 2).Trim() != "null")
+                if (lines[line].Substring(colon + 2).Trim() != "null")
                     continue;
 
                 slotLine = line;
@@ -339,150 +544,217 @@ namespace TS_SE_Tool
                 return false;
             }
 
-            // 2) bloco do motorista: hometown / current_city / training_policy
-            int driverHeader = -1;
-            for (int index = 0; index < text.Length; index++)
-            {
-                if (text[index] == "driver_ai : " + driverId + " {")
-                {
-                    driverHeader = index;
-                    break;
-                }
-            }
+            int slotColon = lines[slotLine].IndexOf(": ", StringComparison.Ordinal);
+            lines[slotLine] = lines[slotLine].Substring(0, slotColon + 2) + driverId;
 
+            // 2) driver block
+            int driverHeader = FindModernUnitHeaderH23(lines, "driver_ai : " + driverId);
             if (driverHeader < 0)
             {
                 message = "Bloco do motorista nao localizado: " + driverId;
                 return false;
             }
 
-            int driverEnd = GetModernBlockEndH23(text, driverHeader);
+            int driverEnd = GetModernBlockEndH23(lines, driverHeader);
             if (driverEnd < 0)
             {
                 message = "Bloco do motorista incompleto: " + driverId;
                 return false;
             }
 
-            string city = garage.City;
-            int changed = 0;
+            SetModernFieldH23(lines, driverHeader + 1, driverEnd, "hometown", garage.City);
+            SetModernFieldH23(lines, driverHeader + 1, driverEnd, "current_city", garage.City);
+            SetModernFieldH23(lines, driverHeader + 1, driverEnd, "training_policy", "1");
 
-            for (int line = driverHeader + 1; line < driverEnd; line++)
+            // 3) register in the company roster
+            if (!AppendModernArrayItemH23(lines, "player", "drivers", driverId) ||
+                !AppendModernArrayItemH23(lines, "player", "driver_flags", "0") ||
+                !AppendModernArrayItemH23(lines, "player", "driver_readiness_timer", "0"))
             {
-                if (text[line] == " hometown: \"\"")
-                {
-                    text[line] = " hometown: " + city;
-                    changed++;
-                }
-                else if (text[line] == " current_city: \"\"")
-                {
-                    text[line] = " current_city: " + city;
-                    changed++;
-                }
-                else if (text[line].StartsWith(" training_policy: ", StringComparison.Ordinal))
-                {
-                    text[line] = " training_policy: 1";
-                    changed++;
-                }
-            }
-
-            if (changed < 2)
-            {
-                message = "Campos do motorista nao localizados: " + driverId;
+                message = "Nao foi possivel registrar o motorista na empresa (bloco player).";
                 return false;
             }
 
-            // 3) taxa de contratacao
-            int bankHeader = -1;
-            for (int index = 0; index < text.Length; index++)
+            // 4) pull him out of the recruitment list - do this last,
+            //    it is the only step that removes a line
+            int offerIndex = IndexOfModernArrayItemH23(lines, "economy", "drivers_offer", driverId);
+            if (offerIndex >= 0)
             {
-                if (text[index].StartsWith("bank : ", StringComparison.Ordinal))
+                if (!RemoveModernArrayItemAtH23(lines, "economy", "drivers_offer", offerIndex))
                 {
-                    bankHeader = index;
-                    break;
+                    message = "Nao foi possivel remover o motorista do recrutamento.";
+                    return false;
                 }
             }
 
-            if (bankHeader >= 0)
-            {
-                int bankEnd = GetModernBlockEndH23(text, bankHeader);
-                if (bankEnd > bankHeader)
-                {
-                    for (int line = bankHeader + 1; line < bankEnd; line++)
-                    {
-                        if (!text[line].StartsWith(" money_account: ", StringComparison.Ordinal))
-                            continue;
-
-                        long current;
-                        if (!Int64.TryParse(text[line].Substring(" money_account: ".Length), NumberStyles.Integer,
-                                CultureInfo.InvariantCulture, out current))
-                            break;
-
-                        long after = current - ModernHireFeeH23;
-                        if (after < 0)
-                            after = 0;
-
-                        text[line] = " money_account: " + after.ToString(CultureInfo.InvariantCulture);
-
-                        if (SiiNunitData != null && SiiNunitData.Bank != null &&
-                            SiiNunitData.Bank.money_account > (uint)ModernHireFeeH23)
-                        {
-                            SiiNunitData.Bank.money_account -= (uint)ModernHireFeeH23;
-                        }
-
-                        break;
-                    }
-                }
-            }
-
-            // 4) ocupar o lugar por ultimo, depois de todas as validacoes
-            int colon2 = text[slotLine].IndexOf(": ", StringComparison.Ordinal);
-            text[slotLine] = text[slotLine].Substring(0, colon2 + 2) + driverId;
+            tempSavefileInMemory = lines.ToArray();
 
             message = "Contratado " + driverId + " em " + garage.City + "." + Environment.NewLine +
-                      "Sera gravado ao salvar o save." + Environment.NewLine + Environment.NewLine +
-                      "Observacao: o motorista pode continuar listado no recrutamento ate o jogo" + Environment.NewLine +
-                      "reorganizar o mercado.";
+                      "Gravado ao salvar o save.";
 
             IO_Utilities.LogWriter(
                 "RC5.1H23 driver hired: " + driverId + " -> " + garageId +
-                ", fee=" + ModernHireFeeH23.ToString(CultureInfo.InvariantCulture) +
                 ", free_before=" + garage.FreeSlots.ToString(CultureInfo.InvariantCulture));
 
             return true;
         }
 
-        private void EnsureModernDriverHireMenuH23()
-        {
-            if (ModernDriverHireMenuH23 != null)
-                return;
-
-            ModernDriverHireMenuH23 = new ToolStripMenuItem();
-            ModernDriverHireMenuH23.Name = "toolStripMenuItemDriverHireH23";
-            ModernDriverHireMenuH23.Text = "Contratar motorista IA (RC5.1H23)";
-            ModernDriverHireMenuH23.ToolTipText =
-                "Ocupa um lugar vazio da garagem em save moderno.";
-            ModernDriverHireMenuH23.Click += delegate { ShowModernDriverHireDialogH23(); };
-
-            int separatorIndex = toolStripMenuItemProgram.DropDownItems.IndexOf(toolStripSeparator1);
-            if (separatorIndex < 0)
-                toolStripMenuItemProgram.DropDownItems.Add(ModernDriverHireMenuH23);
-            else
-                toolStripMenuItemProgram.DropDownItems.Insert(separatorIndex, ModernDriverHireMenuH23);
-        }
-
-        private void ShowModernDriverHireDialogH23()
+        internal bool FireModernDriverH23(string driverId, out string message)
         {
             string reason;
-            if (!CanUseModernDriverHireH23(out reason))
+            if (!CanUseModernDriverToolsH23(out reason))
+            {
+                message = reason;
+                return false;
+            }
+
+            message = "";
+
+            if (!GetModernFireCandidatesH23().Any(x => x.Id == driverId))
+            {
+                message = "Motorista nao esta empregado: " + driverId;
+                return false;
+            }
+
+            List<string> lines = new List<string>(tempSavefileInMemory);
+
+            // 1) release the garage slot
+            int slotLine = -1;
+            for (int index = 0; index < lines.Count && slotLine < 0; index++)
+            {
+                if (!lines[index].StartsWith("garage : ", StringComparison.Ordinal))
+                    continue;
+
+                int end = GetModernBlockEndH23(lines, index);
+                if (end < 0)
+                    continue;
+
+                for (int line = index + 1; line < end; line++)
+                {
+                    if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                        continue;
+
+                    int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
+                    if (colon < 0)
+                        continue;
+
+                    if (lines[line].Substring(colon + 2).Trim() != driverId)
+                        continue;
+
+                    lines[line] = lines[line].Substring(0, colon + 2) + "null";
+                    slotLine = line;
+                    break;
+                }
+            }
+
+            if (slotLine < 0)
+            {
+                message = "O motorista nao ocupa lugar em nenhuma garagem: " + driverId;
+                return false;
+            }
+
+            // 2) mark the driver as dismissed
+            int driverHeader = FindModernUnitHeaderH23(lines, "driver_ai : " + driverId);
+            if (driverHeader < 0)
+            {
+                message = "Bloco do motorista nao localizado: " + driverId;
+                return false;
+            }
+
+            int driverEnd = GetModernBlockEndH23(lines, driverHeader);
+            if (driverEnd < 0)
+            {
+                message = "Bloco do motorista incompleto: " + driverId;
+                return false;
+            }
+
+            string stateText = GetModernFieldH23(lines, driverHeader + 1, driverEnd, "state");
+            uint state;
+            if (stateText == null ||
+                !UInt32.TryParse(stateText, NumberStyles.Integer, CultureInfo.InvariantCulture, out state))
+            {
+                message = "Campo state do motorista nao localizado: " + driverId;
+                return false;
+            }
+
+            SetModernFieldH23(lines, driverHeader + 1, driverEnd, "state",
+                (state | 0x80000000u).ToString(CultureInfo.InvariantCulture));
+
+            // 3) unregister from the company roster (same ordinal in all three arrays)
+            int rosterIndex = IndexOfModernArrayItemH23(lines, "player", "drivers", driverId);
+            if (rosterIndex >= 0)
+            {
+                if (!RemoveModernArrayItemAtH23(lines, "player", "drivers", rosterIndex))
+                {
+                    message = "Nao foi possivel remover o motorista do quadro da empresa.";
+                    return false;
+                }
+
+                RemoveModernArrayItemAtH23(lines, "player", "driver_flags", rosterIndex);
+                RemoveModernArrayItemAtH23(lines, "player", "driver_readiness_timer", rosterIndex);
+            }
+
+            // 4) remember the dismissal
+            AppendModernArrayItemH23(lines, "player", "dismissed_drivers", driverId);
+
+            tempSavefileInMemory = lines.ToArray();
+
+            message = "Demitido " + driverId + "." + Environment.NewLine + "Gravado ao salvar o save.";
+
+            IO_Utilities.LogWriter("RC5.1H23 driver fired: " + driverId);
+
+            return true;
+        }
+
+        private void EnsureModernDriverMenusH23()
+        {
+            if (ModernDriverHireMenuH23 == null)
+            {
+                ModernDriverHireMenuH23 = new ToolStripMenuItem();
+                ModernDriverHireMenuH23.Name = "toolStripMenuItemDriverHireH23";
+                ModernDriverHireMenuH23.Text = "Contratar motorista IA (RC5.1H23)";
+                ModernDriverHireMenuH23.ToolTipText =
+                    "Ocupa um lugar vazio da garagem e registra o motorista na empresa.";
+                ModernDriverHireMenuH23.Click += delegate { ShowModernDriverDialogH23(true); };
+            }
+
+            if (ModernDriverFireMenuH23 == null)
+            {
+                ModernDriverFireMenuH23 = new ToolStripMenuItem();
+                ModernDriverFireMenuH23.Name = "toolStripMenuItemDriverFireH23";
+                ModernDriverFireMenuH23.Text = "Demitir motorista IA (RC5.1H23)";
+                ModernDriverFireMenuH23.ToolTipText =
+                    "Libera o lugar na garagem e marca o motorista como demitido.";
+                ModernDriverFireMenuH23.Click += delegate { ShowModernDriverDialogH23(false); };
+            }
+
+            int separatorIndex = toolStripMenuItemProgram.DropDownItems.IndexOf(toolStripSeparator1);
+
+            foreach (ToolStripMenuItem item in new ToolStripMenuItem[] { ModernDriverHireMenuH23, ModernDriverFireMenuH23 })
+            {
+                if (toolStripMenuItemProgram.DropDownItems.Contains(item))
+                    continue;
+
+                if (separatorIndex < 0)
+                    toolStripMenuItemProgram.DropDownItems.Add(item);
+                else
+                    toolStripMenuItemProgram.DropDownItems.Insert(separatorIndex, item);
+            }
+        }
+
+        private void ShowModernDriverDialogH23(bool hire)
+        {
+            string reason;
+            if (!CanUseModernDriverToolsH23(out reason))
             {
                 MessageBox.Show(reason, "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            List<ModernHireGarageH23> garages = GetModernHireGaragesH23();
-            List<ModernHireCandidateH23> candidates = GetModernHireCandidatesH23();
+            List<ModernHireGarageH23> garages = hire ? GetModernHireGaragesH23() : new List<ModernHireGarageH23>();
+            List<ModernDriverChoiceH23> drivers = hire ? GetModernHireCandidatesH23() : GetModernFireCandidatesH23();
 
-            if (garages.Count == 0)
+            if (hire && garages.Count == 0)
             {
                 MessageBox.Show(
                     "Nenhuma garagem com lugar de motorista vazio." + Environment.NewLine +
@@ -491,68 +763,78 @@ namespace TS_SE_Tool
                 return;
             }
 
-            if (candidates.Count == 0)
+            if (drivers.Count == 0)
             {
                 MessageBox.Show(
-                    "Nenhum motorista disponivel no recrutamento deste save.",
+                    hire ? "Nenhum motorista disponivel no recrutamento deste save."
+                         : "Nenhum motorista empregado ocupa lugar em garagem.",
                     "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             using (Form dialog = new Form())
             {
-                dialog.Text = "RC5.1H23 - contratar motorista";
+                dialog.Text = hire ? "RC5.1H23 - contratar motorista" : "RC5.1H23 - demitir motorista";
                 dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
                 dialog.StartPosition = FormStartPosition.CenterParent;
                 dialog.MaximizeBox = false;
                 dialog.MinimizeBox = false;
-                dialog.ClientSize = new System.Drawing.Size(520, 240);
+                dialog.ClientSize = new System.Drawing.Size(560, 210);
 
-                Label garageLabel = new Label();
-                garageLabel.Text = "Garagem:";
-                garageLabel.Location = new System.Drawing.Point(16, 16);
-                garageLabel.AutoSize = true;
+                int top = 16;
 
-                ComboBox garageBox = new ComboBox();
-                garageBox.DropDownStyle = ComboBoxStyle.DropDownList;
-                garageBox.Location = new System.Drawing.Point(16, 38);
-                garageBox.Size = new System.Drawing.Size(488, 24);
-                garageBox.DataSource = garages;
+                if (hire)
+                {
+                    Label garageLabel = new Label();
+                    garageLabel.Text = "Garagem:";
+                    garageLabel.Location = new System.Drawing.Point(16, top);
+                    garageLabel.AutoSize = true;
+
+                    ComboBox garageBox = new ComboBox();
+                    garageBox.Name = "comboBoxModernHireGarageH23";
+                    garageBox.DropDownStyle = ComboBoxStyle.DropDownList;
+                    garageBox.Location = new System.Drawing.Point(16, top + 22);
+                    garageBox.Size = new System.Drawing.Size(528, 24);
+                    garageBox.DataSource = garages;
+
+                    dialog.Controls.Add(garageLabel);
+                    dialog.Controls.Add(garageBox);
+
+                    top += 66;
+                }
 
                 Label driverLabel = new Label();
-                driverLabel.Text = "Motorista no recrutamento:";
-                driverLabel.Location = new System.Drawing.Point(16, 74);
+                driverLabel.Text = hire ? "Motorista no recrutamento:" : "Motorista empregado:";
+                driverLabel.Location = new System.Drawing.Point(16, top);
                 driverLabel.AutoSize = true;
 
                 ComboBox driverBox = new ComboBox();
+                driverBox.Name = "comboBoxModernDriverChoiceH23";
                 driverBox.DropDownStyle = ComboBoxStyle.DropDownList;
-                driverBox.Location = new System.Drawing.Point(16, 96);
-                driverBox.Size = new System.Drawing.Size(488, 24);
-                driverBox.DataSource = candidates;
+                driverBox.Location = new System.Drawing.Point(16, top + 22);
+                driverBox.Size = new System.Drawing.Size(528, 24);
+                driverBox.DataSource = drivers;
 
-                Label feeLabel = new Label();
-                feeLabel.Text = "Custo: " +
-                    ModernHireFeeH23.ToString(CultureInfo.InvariantCulture) + " (descontado do banco)";
-                feeLabel.Location = new System.Drawing.Point(16, 132);
-                feeLabel.AutoSize = true;
+                Label noteLabel = new Label();
+                noteLabel.Text = "Sem custo - o save e alterado diretamente.";
+                noteLabel.Location = new System.Drawing.Point(16, top + 56);
+                noteLabel.AutoSize = true;
 
                 Button okButton = new Button();
-                okButton.Text = "Contratar";
-                okButton.Location = new System.Drawing.Point(316, 180);
+                okButton.Text = hire ? "Contratar" : "Demitir";
+                okButton.Location = new System.Drawing.Point(354, 160);
                 okButton.Size = new System.Drawing.Size(90, 30);
                 okButton.DialogResult = DialogResult.OK;
 
                 Button cancelButton = new Button();
                 cancelButton.Text = "Cancelar";
-                cancelButton.Location = new System.Drawing.Point(414, 180);
+                cancelButton.Location = new System.Drawing.Point(454, 160);
                 cancelButton.Size = new System.Drawing.Size(90, 30);
                 cancelButton.DialogResult = DialogResult.Cancel;
 
-                dialog.Controls.Add(garageLabel);
-                dialog.Controls.Add(garageBox);
                 dialog.Controls.Add(driverLabel);
                 dialog.Controls.Add(driverBox);
-                dialog.Controls.Add(feeLabel);
+                dialog.Controls.Add(noteLabel);
                 dialog.Controls.Add(okButton);
                 dialog.Controls.Add(cancelButton);
                 dialog.AcceptButton = okButton;
@@ -561,17 +843,41 @@ namespace TS_SE_Tool
                 if (dialog.ShowDialog(this) != DialogResult.OK)
                     return;
 
-                ModernHireGarageH23 selectedGarage = garageBox.SelectedItem as ModernHireGarageH23;
-                ModernHireCandidateH23 selectedDriver = driverBox.SelectedItem as ModernHireCandidateH23;
+                ModernDriverChoiceH23 selectedDriver =
+                    (dialog.Controls["comboBoxModernDriverChoiceH23"] as ComboBox).SelectedItem as ModernDriverChoiceH23;
 
-                if (selectedGarage == null || selectedDriver == null)
+                if (selectedDriver == null)
                     return;
 
                 string message;
-                if (!HireModernDriverH23(selectedDriver.Id, selectedGarage.Id, out message))
+
+                if (hire)
                 {
-                    MessageBox.Show(message, "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    ModernHireGarageH23 selectedGarage =
+                        (dialog.Controls["comboBoxModernHireGarageH23"] as ComboBox).SelectedItem as ModernHireGarageH23;
+
+                    if (selectedGarage == null)
+                        return;
+
+                    if (!HireModernDriverH23(selectedDriver.Id, selectedGarage.Id, out message))
+                    {
+                        MessageBox.Show(message, "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+                else
+                {
+                    if (MessageBox.Show(
+                            "Demitir " + selectedDriver.Id + " ?" + Environment.NewLine + Environment.NewLine +
+                            "O lugar na garagem fica livre e o motorista sai do quadro da empresa.",
+                            "RC5.1H23", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                        return;
+
+                    if (!FireModernDriverH23(selectedDriver.Id, out message))
+                    {
+                        MessageBox.Show(message, "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
                 }
 
                 MessageBox.Show(message, "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -580,7 +886,7 @@ namespace TS_SE_Tool
 
         private void InitializeModernDriverHireH23()
         {
-            EnsureModernDriverHireMenuH23();
+            EnsureModernDriverMenusH23();
         }
     }
 }
