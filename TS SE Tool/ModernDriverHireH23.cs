@@ -915,13 +915,42 @@ namespace TS_SE_Tool
                 contextMenuStripCompanyDriversFire.Click -= contextMenuStripCompanyDriversFire_Click;
                 contextMenuStripCompanyDriversFire.Click += delegate { ShowModernDriverDialogH23(false); };
 
+                // H20 keeps disabling these controls from its own selection /
+                // mouse handlers. Those handlers were subscribed first, so ours
+                // run afterwards and put the controls back into an enabled state.
+                listBoxUserCompanyDrivers.SelectedIndexChanged += ModernDriverKeepControlsEnabledH23;
+                listBoxUserCompanyDrivers.MouseDown += ModernDriverKeepControlsEnabledMouseH23;
+
                 ModernDriverButtonsWiredH23 = true;
             }
+
+            ApplyModernDriverControlsStateH23();
+        }
+
+        private void ModernDriverKeepControlsEnabledH23(object sender, EventArgs e)
+        {
+            ApplyModernDriverControlsStateH23();
+        }
+
+        private void ModernDriverKeepControlsEnabledMouseH23(object sender, MouseEventArgs e)
+        {
+            ApplyModernDriverControlsStateH23();
+        }
+
+        private void ApplyModernDriverControlsStateH23()
+        {
+            if (!IsModernCompatibilityMode())
+                return;
 
             buttonUserCompanyDriversHire.Enabled = true;
             buttonUserCompanyDriversFire.Enabled = true;
             contextMenuStripCompanyDriversHire.Enabled = true;
             contextMenuStripCompanyDriversFire.Enabled = true;
+
+            contextMenuStripCompanyDriversHire.ToolTipText =
+                "RC5.1H23: hire a driver from the recruitment list.";
+            contextMenuStripCompanyDriversFire.ToolTipText =
+                "RC5.1H23: fire an employed driver.";
 
             toolTipMain.SetToolTip(buttonUserCompanyDriversHire,
                 "RC5.1H23: hire a driver from the recruitment list into a garage with a free slot.");
