@@ -666,6 +666,25 @@ namespace TS_SE_Tool
                 }
             }
 
+            // every parallel roster array must have the same length as player.drivers,
+            // the game indexes them with the driver ordinal
+            foreach (string parallel in new string[] { "driver_flags", "driver_readiness_timer", "driver_undrivable_truck_timers" })
+            {
+                int parCountIdx;
+                List<int> parIdx;
+                int parDeclared;
+
+                if (GetModernArrayCountH23(lines, "player", parallel, out parCountIdx, out parIdx, out parDeclared) < 0)
+                    continue;
+
+                if (parDeclared != roster.Count)
+                {
+                    problem = "player." + parallel + " has " + parDeclared +
+                        " entries but player.drivers has " + roster.Count;
+                    return false;
+                }
+            }
+
             foreach (KeyValuePair<string, string> pair in parked)
             {
                 if (roster.Contains(pair.Key))
@@ -855,6 +874,28 @@ namespace TS_SE_Tool
                 return false;
             }
 
+            // player.driver_undrivable_truck_timers is indexed by the same driver
+            // ordinal as player.drivers, so it has to grow with it. Forgetting this
+            // is what the game reports as "Index outside array boundaries: 5 >= 3"
+            // when a driver is fired later. Older saves may not carry the array at
+            // all, in which case there is nothing to grow.
+            {
+                int udtCountIdx;
+                List<int> udtIdx;
+                int udtDeclared;
+
+                if (GetModernArrayCountH23(lines, "player", "driver_undrivable_truck_timers",
+                        out udtCountIdx, out udtIdx, out udtDeclared) >= 0)
+                {
+                    if (!AppendModernArrayItemH23(lines, "player", "driver_undrivable_truck_timers", "0"))
+                    {
+                        message = ModernDriverTextH23("modernDriverHireH23ErrRosterRegister",
+                            "Could not register the driver in the company roster (player block).");
+                        return false;
+                    }
+                }
+            }
+
             // 4) free his place in the recruitment list. drivers_offer has a fixed
             //    length (unlocked_recruitments) and the game indexes it by slot, so it
             //    must never shrink: removing an entry makes the game read past the end
@@ -1007,6 +1048,14 @@ namespace TS_SE_Tool
                 return false;
             }
 
+            // The game decides where a fired driver ends up from the low bits of
+            // state before it ORs in the 0x80000000 flag. Verified over 12 firings
+            // in 7 saves, 6 for 6 with no overlap:
+            //   low bits == 1 (driver has no active job) -> back to economy.driver_pool
+            //   low bits == 2 or 4 (driver is on a job) -> player.dismissed_drivers
+            uint stateLow = state & 0x7FFFFFFFu;
+            bool returnsToPool = (stateLow == 1u);
+
             SetModernFieldH23(lines, driverHeader + 1, driverEnd, "state",
                 (state | 0x80000000u).ToString(CultureInfo.InvariantCulture));
 
@@ -1023,6 +1072,7 @@ namespace TS_SE_Tool
 
                 RemoveModernArrayItemAtH23(lines, "player", "driver_flags", rosterIndex);
                 RemoveModernArrayItemAtH23(lines, "player", "driver_readiness_timer", rosterIndex);
+                RemoveModernArrayItemAtH23(lines, "player", "driver_undrivable_truck_timers", rosterIndex);
             }
 
             // 4) hand him back to the driver pool. Verified against saves the game
@@ -1038,7 +1088,18 @@ namespace TS_SE_Tool
             //    field marks "long standing" is not established yet, so every fired
             //    driver goes back to the pool here. That keeps the accounting sound
             //    but a veteran stays re-hireable.
-            AppendModernArrayItemH23(lines, "economy", "driver_pool", driverId);
+            if (returnsToPool)
+            {
+                AppendModernArrayItemH23(lines, "economy", "driver_pool", driverId);
+
+                // observed on the game's own firings: a driver sent back to the pool
+                // also gets his training policy reset
+                SetModernFieldH23(lines, driverHeader + 1, driverEnd, "training_policy", "0");
+            }
+            else
+            {
+                AppendModernArrayItemH23(lines, "player", "dismissed_drivers", driverId);
+            }
 
             RepairMissingRosterEntriesH23(lines);
 
