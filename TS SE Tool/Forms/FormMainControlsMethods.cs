@@ -1,4 +1,4 @@
-﻿/*
+/*
    Copyright 2016-2022 LIPtoH <liptoh.codebase@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -245,10 +245,17 @@ namespace TS_SE_Tool
                 "buttonUserCompanyCitiesVisit",
                 "buttonUserCompanyCitiesUnVisit",
                 "listBoxGarages",
-                "listBoxUserCompanyDrivers"
+                "listBoxUserCompanyDrivers",
+                // RC5.1H23: the driver hire / fire controls are served by the
+                // modern implementation now, so they must survive the whitelist.
+                "buttonUserCompanyDriversHire",
+                "buttonUserCompanyDriversFire"
             };
 
             RestrictModernCompanyControls(companyTab, allowedControls);
+
+            if (IsModernCompatibilityMode())
+                ApplyModernDriverControlsStateH23();
 
             textBoxUserCompanyCompanyName.ReadOnly = false;
             textBoxUserCompanyCompanyName.Enabled = true;
