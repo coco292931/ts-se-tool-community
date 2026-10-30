@@ -553,6 +553,205 @@ namespace TS_SE_Tool
             return result;
         }
 
+        private static string FindModernGarageOfDriverH23(List<string> lines, string driverId)
+        {
+            for (int index = 0; index < lines.Count; index++)
+            {
+                if (!lines[index].StartsWith("garage : ", StringComparison.Ordinal))
+                    continue;
+
+                int end = GetModernBlockEndH23(lines, index);
+                if (end < 0)
+                    continue;
+
+                string garageId = lines[index].Substring("garage : ".Length).TrimEnd(' ', '{').Trim();
+
+                for (int line = index + 1; line < end; line++)
+                {
+                    if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                        continue;
+
+                    int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
+                    if (colon < 0)
+                        continue;
+
+                    if (lines[line].Substring(colon + 2).Trim() == driverId)
+                        return garageId;
+                }
+            }
+
+            return "";
+        }
+
+        // Full consistency check across the three ownership containers and the garage
+        // slots. Anything reported here means the game would reject the save or mangle
+        // it silently, so the caller must refuse to write it.
+        private static bool ValidateModernDriverStateH23(List<string> lines, out string problem)
+        {
+            problem = "";
+
+            Dictionary<string, string> parked = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            for (int index = 0; index < lines.Count; index++)
+            {
+                if (!lines[index].StartsWith("garage : ", StringComparison.Ordinal))
+                    continue;
+
+                int end = GetModernBlockEndH23(lines, index);
+                if (end < 0)
+                {
+                    problem = "garage block is not terminated: " + lines[index];
+                    return false;
+                }
+
+                string garageId = lines[index].Substring("garage : ".Length).TrimEnd(' ', '{').Trim();
+                int slots = 0;
+
+                for (int line = index + 1; line < end; line++)
+                {
+                    if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                        continue;
+
+                    slots++;
+
+                    int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
+                    if (colon < 0)
+                    {
+                        problem = "malformed driver slot in " + garageId;
+                        return false;
+                    }
+
+                    string id = lines[line].Substring(colon + 2).Trim();
+                    if (id == "null")
+                        continue;
+
+                    string previous;
+                    if (parked.TryGetValue(id, out previous))
+                    {
+                        problem = "driver " + id + " occupies two slots (" + previous + " and " + garageId + ")";
+                        return false;
+                    }
+
+                    parked[id] = garageId;
+                }
+
+                string capacityText = GetModernFieldH23(lines, index + 1, end, "status");
+                int status;
+                int capacity = 0;
+                if (capacityText != null &&
+                    Int32.TryParse(capacityText, NumberStyles.Integer, CultureInfo.InvariantCulture, out status))
+                    capacity = GetModernGarageCapacityH23(status);
+
+                if (capacity > 0 && slots != capacity)
+                {
+                    problem = "garage " + garageId + " has " + slots +
+                        " driver slots but capacity " + capacity;
+                    return false;
+                }
+            }
+
+            HashSet<string> roster = new HashSet<string>(StringComparer.Ordinal);
+
+            int countIdx;
+            List<int> itemIdx;
+            int declared;
+
+            if (GetModernArrayCountH23(lines, "player", "drivers", out countIdx, out itemIdx, out declared) >= 0)
+            {
+                foreach (int at in itemIdx)
+                {
+                    int colon = lines[at].IndexOf(": ", StringComparison.Ordinal);
+                    if (colon >= 0)
+                        roster.Add(lines[at].Substring(colon + 2).Trim());
+                }
+            }
+
+            foreach (KeyValuePair<string, string> pair in parked)
+            {
+                if (roster.Contains(pair.Key))
+                    continue;
+
+                problem = "driver " + pair.Key + " is parked in " + pair.Value +
+                    " but missing from the company roster";
+                return false;
+            }
+
+            foreach (string id in roster)
+            {
+                if (IndexOfModernArrayItemH23(lines, "economy", "drivers_offer", id) >= 0)
+                {
+                    problem = "driver " + id + " is both in the roster and in the recruitment list";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Older builds of this module put a driver into a garage without registering
+        // him in the company roster. Such a save still loads, but the driver is not a
+        // real employee and the two management screens disagree about the head count.
+        // Register them before validating so the write stays consistent.
+        private static void RepairMissingRosterEntriesH23(List<string> lines)
+        {
+            HashSet<string> roster = new HashSet<string>(StringComparer.Ordinal);
+
+            int countIdx;
+            List<int> itemIdx;
+            int declared;
+
+            if (GetModernArrayCountH23(lines, "player", "drivers", out countIdx, out itemIdx, out declared) >= 0)
+            {
+                foreach (int at in itemIdx)
+                {
+                    int colon = lines[at].IndexOf(": ", StringComparison.Ordinal);
+                    if (colon >= 0)
+                        roster.Add(lines[at].Substring(colon + 2).Trim());
+                }
+            }
+
+            List<string> missing = new List<string>();
+
+            for (int index = 0; index < lines.Count; index++)
+            {
+                if (!lines[index].StartsWith("garage : ", StringComparison.Ordinal))
+                    continue;
+
+                int end = GetModernBlockEndH23(lines, index);
+                if (end < 0)
+                    continue;
+
+                for (int line = index + 1; line < end; line++)
+                {
+                    if (!lines[line].StartsWith(" drivers[", StringComparison.Ordinal))
+                        continue;
+
+                    int colon = lines[line].IndexOf(": ", StringComparison.Ordinal);
+                    if (colon < 0)
+                        continue;
+
+                    string id = lines[line].Substring(colon + 2).Trim();
+                    if (!id.StartsWith("driver.", StringComparison.Ordinal))
+                        continue;
+                    if (roster.Contains(id))
+                        continue;
+
+                    roster.Add(id);
+                    missing.Add(id);
+                }
+            }
+
+            foreach (string id in missing)
+            {
+                AppendModernArrayItemH23(lines, "player", "drivers", id);
+                AppendModernArrayItemH23(lines, "player", "driver_flags", "0");
+                AppendModernArrayItemH23(lines, "player", "driver_readiness_timer", "0");
+
+                IO_Utilities.LogWriter("RC5.1H23 roster repair: registered " + id +
+                    " which was parked in a garage without being on the company roster");
+            }
+        }
+
         internal bool HireModernDriverH23(string driverId, string garageId, out string message)
         {
             string reason;
@@ -667,6 +866,15 @@ namespace TS_SE_Tool
                         "Could not remove the driver from the recruitment list.");
                     return false;
                 }
+            }
+
+            RepairMissingRosterEntriesH23(lines);
+
+            string inconsistency;
+            if (!ValidateModernDriverStateH23(lines, out inconsistency))
+            {
+                message = "Refused, the save would be left inconsistent: " + inconsistency;
+                return false;
             }
 
             tempSavefileInMemory = lines.ToArray();
@@ -785,6 +993,15 @@ namespace TS_SE_Tool
 
             // 4) remember the dismissal
             AppendModernArrayItemH23(lines, "player", "dismissed_drivers", driverId);
+
+            RepairMissingRosterEntriesH23(lines);
+
+            string inconsistency;
+            if (!ValidateModernDriverStateH23(lines, out inconsistency))
+            {
+                message = "Refused, the save would be left inconsistent: " + inconsistency;
+                return false;
+            }
 
             tempSavefileInMemory = lines.ToArray();
 
