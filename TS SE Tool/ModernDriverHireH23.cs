@@ -1025,8 +1025,20 @@ namespace TS_SE_Tool
                 RemoveModernArrayItemAtH23(lines, "player", "driver_readiness_timer", rosterIndex);
             }
 
-            // 4) remember the dismissal
-            AppendModernArrayItemH23(lines, "player", "dismissed_drivers", driverId);
+            // 4) hand him back to the driver pool. Verified against saves the game
+            //    produced itself: firing three freshly hired drivers moved all three
+            //    back into economy.driver_pool (332 -> 335) and left dismissed_drivers
+            //    empty. Keeping the totals of the three containers stable is what
+            //    matters; writing into dismissed_drivers instead made the pool short
+            //    and the game ran past the end of it ("Index outside array
+            //    boundaries") the next time the market was refreshed.
+            //
+            //    Known difference: the game files a long standing driver under
+            //    dismissed_drivers rather than returning him to the pool. Which
+            //    field marks "long standing" is not established yet, so every fired
+            //    driver goes back to the pool here. That keeps the accounting sound
+            //    but a veteran stays re-hireable.
+            AppendModernArrayItemH23(lines, "economy", "driver_pool", driverId);
 
             RepairMissingRosterEntriesH23(lines);
 
