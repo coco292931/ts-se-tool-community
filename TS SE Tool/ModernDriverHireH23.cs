@@ -61,6 +61,7 @@ namespace TS_SE_Tool
 
         private ToolStripMenuItem ModernDriverHireMenuH23;
         private ToolStripMenuItem ModernDriverFireMenuH23;
+        private bool ModernDriverButtonsWiredH23;
 
         private static int GetModernGarageCapacityH23(int status)
         {
@@ -231,13 +232,13 @@ namespace TS_SE_Tool
 
             if (!IsModernCompatibilityMode())
             {
-                reason = "Disponivel apenas em saves modernos (formato acima de 74).";
+                reason = "Only available for modern saves (format above 74).";
                 return false;
             }
 
             if (tempSavefileInMemory == null || tempSavefileInMemory.Length == 0)
             {
-                reason = "Nenhum save moderno carregado.";
+                reason = "No modern save loaded.";
                 return false;
             }
 
@@ -393,7 +394,7 @@ namespace TS_SE_Tool
                     result.Add(new ModernDriverChoiceH23
                     {
                         Id = id,
-                        Where = "recrutamento",
+                        Where = "recruitment",
                         Experience = experience,
                         Skills = parts.Length > 1 ? parts[1] : ""
                     });
@@ -494,13 +495,13 @@ namespace TS_SE_Tool
             ModernHireGarageH23 garage = GetModernHireGaragesH23().FirstOrDefault(x => x.Id == garageId);
             if (garage == null)
             {
-                message = "Garagem sem lugar livre ou inexistente: " + garageId;
+                message = "Garage has no free slot, or does not exist: " + garageId;
                 return false;
             }
 
             if (!GetModernHireCandidatesH23().Any(x => x.Id == driverId))
             {
-                message = "Motorista indisponivel para contratacao: " + driverId;
+                message = "Driver not available for hiring: " + driverId;
                 return false;
             }
 
@@ -510,14 +511,14 @@ namespace TS_SE_Tool
             int garageHeader = FindModernUnitHeaderH23(lines, "garage : " + garageId);
             if (garageHeader < 0)
             {
-                message = "Bloco da garagem nao localizado: " + garageId;
+                message = "Garage block not found: " + garageId;
                 return false;
             }
 
             int garageEnd = GetModernBlockEndH23(lines, garageHeader);
             if (garageEnd < 0)
             {
-                message = "Bloco da garagem incompleto: " + garageId;
+                message = "Garage block incomplete: " + garageId;
                 return false;
             }
 
@@ -540,7 +541,7 @@ namespace TS_SE_Tool
 
             if (slotLine < 0)
             {
-                message = "A garagem nao tem lugar de motorista vazio: " + garageId;
+                message = "Garage has no free driver slot: " + garageId;
                 return false;
             }
 
@@ -551,14 +552,14 @@ namespace TS_SE_Tool
             int driverHeader = FindModernUnitHeaderH23(lines, "driver_ai : " + driverId);
             if (driverHeader < 0)
             {
-                message = "Bloco do motorista nao localizado: " + driverId;
+                message = "Driver block not found: " + driverId;
                 return false;
             }
 
             int driverEnd = GetModernBlockEndH23(lines, driverHeader);
             if (driverEnd < 0)
             {
-                message = "Bloco do motorista incompleto: " + driverId;
+                message = "Driver block incomplete: " + driverId;
                 return false;
             }
 
@@ -571,7 +572,7 @@ namespace TS_SE_Tool
                 !AppendModernArrayItemH23(lines, "player", "driver_flags", "0") ||
                 !AppendModernArrayItemH23(lines, "player", "driver_readiness_timer", "0"))
             {
-                message = "Nao foi possivel registrar o motorista na empresa (bloco player).";
+                message = "Could not register the driver in the company roster (player block).";
                 return false;
             }
 
@@ -582,15 +583,15 @@ namespace TS_SE_Tool
             {
                 if (!RemoveModernArrayItemAtH23(lines, "economy", "drivers_offer", offerIndex))
                 {
-                    message = "Nao foi possivel remover o motorista do recrutamento.";
+                    message = "Could not remove the driver from the recruitment list.";
                     return false;
                 }
             }
 
             tempSavefileInMemory = lines.ToArray();
 
-            message = "Contratado " + driverId + " em " + garage.City + "." + Environment.NewLine +
-                      "Gravado ao salvar o save.";
+            message = "Hired " + driverId + " in " + garage.City + "." + Environment.NewLine +
+                      "Written when you save the game.";
 
             IO_Utilities.LogWriter(
                 "RC5.1H23 driver hired: " + driverId + " -> " + garageId +
@@ -612,7 +613,7 @@ namespace TS_SE_Tool
 
             if (!GetModernFireCandidatesH23().Any(x => x.Id == driverId))
             {
-                message = "Motorista nao esta empregado: " + driverId;
+                message = "Driver is not employed: " + driverId;
                 return false;
             }
 
@@ -649,7 +650,7 @@ namespace TS_SE_Tool
 
             if (slotLine < 0)
             {
-                message = "O motorista nao ocupa lugar em nenhuma garagem: " + driverId;
+                message = "The driver does not occupy a slot in any garage: " + driverId;
                 return false;
             }
 
@@ -657,14 +658,14 @@ namespace TS_SE_Tool
             int driverHeader = FindModernUnitHeaderH23(lines, "driver_ai : " + driverId);
             if (driverHeader < 0)
             {
-                message = "Bloco do motorista nao localizado: " + driverId;
+                message = "Driver block not found: " + driverId;
                 return false;
             }
 
             int driverEnd = GetModernBlockEndH23(lines, driverHeader);
             if (driverEnd < 0)
             {
-                message = "Bloco do motorista incompleto: " + driverId;
+                message = "Driver block incomplete: " + driverId;
                 return false;
             }
 
@@ -673,7 +674,7 @@ namespace TS_SE_Tool
             if (stateText == null ||
                 !UInt32.TryParse(stateText, NumberStyles.Integer, CultureInfo.InvariantCulture, out state))
             {
-                message = "Campo state do motorista nao localizado: " + driverId;
+                message = "Driver state field not found: " + driverId;
                 return false;
             }
 
@@ -686,7 +687,7 @@ namespace TS_SE_Tool
             {
                 if (!RemoveModernArrayItemAtH23(lines, "player", "drivers", rosterIndex))
                 {
-                    message = "Nao foi possivel remover o motorista do quadro da empresa.";
+                    message = "Could not remove the driver from the company roster.";
                     return false;
                 }
 
@@ -699,7 +700,7 @@ namespace TS_SE_Tool
 
             tempSavefileInMemory = lines.ToArray();
 
-            message = "Demitido " + driverId + "." + Environment.NewLine + "Gravado ao salvar o save.";
+            message = "Fired " + driverId + "." + Environment.NewLine + "Written when you save the game.";
 
             IO_Utilities.LogWriter("RC5.1H23 driver fired: " + driverId);
 
@@ -712,9 +713,9 @@ namespace TS_SE_Tool
             {
                 ModernDriverHireMenuH23 = new ToolStripMenuItem();
                 ModernDriverHireMenuH23.Name = "toolStripMenuItemDriverHireH23";
-                ModernDriverHireMenuH23.Text = "Contratar motorista IA (RC5.1H23)";
+                ModernDriverHireMenuH23.Text = "Hire AI driver (RC5.1H23)";
                 ModernDriverHireMenuH23.ToolTipText =
-                    "Ocupa um lugar vazio da garagem e registra o motorista na empresa.";
+                    "Occupies a free garage slot and registers the driver in the company.";
                 ModernDriverHireMenuH23.Click += delegate { ShowModernDriverDialogH23(true); };
             }
 
@@ -722,9 +723,9 @@ namespace TS_SE_Tool
             {
                 ModernDriverFireMenuH23 = new ToolStripMenuItem();
                 ModernDriverFireMenuH23.Name = "toolStripMenuItemDriverFireH23";
-                ModernDriverFireMenuH23.Text = "Demitir motorista IA (RC5.1H23)";
+                ModernDriverFireMenuH23.Text = "Fire AI driver (RC5.1H23)";
                 ModernDriverFireMenuH23.ToolTipText =
-                    "Libera o lugar na garagem e marca o motorista como demitido.";
+                    "Releases the garage slot and marks the driver as dismissed.";
                 ModernDriverFireMenuH23.Click += delegate { ShowModernDriverDialogH23(false); };
             }
 
@@ -757,8 +758,8 @@ namespace TS_SE_Tool
             if (hire && garages.Count == 0)
             {
                 MessageBox.Show(
-                    "Nenhuma garagem com lugar de motorista vazio." + Environment.NewLine +
-                    "Compre ou amplie uma garagem no jogo antes de contratar.",
+                    "No garage has a free driver slot." + Environment.NewLine +
+                    "Buy or upgrade a garage in game before hiring.",
                     "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -766,15 +767,15 @@ namespace TS_SE_Tool
             if (drivers.Count == 0)
             {
                 MessageBox.Show(
-                    hire ? "Nenhum motorista disponivel no recrutamento deste save."
-                         : "Nenhum motorista empregado ocupa lugar em garagem.",
+                    hire ? "No driver available in the recruitment list of this save."
+                         : "No employed driver occupies a garage slot.",
                     "RC5.1H23", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             using (Form dialog = new Form())
             {
-                dialog.Text = hire ? "RC5.1H23 - contratar motorista" : "RC5.1H23 - demitir motorista";
+                dialog.Text = hire ? "RC5.1H23 - hire AI driver" : "RC5.1H23 - fire AI driver";
                 dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
                 dialog.StartPosition = FormStartPosition.CenterParent;
                 dialog.MaximizeBox = false;
@@ -786,7 +787,7 @@ namespace TS_SE_Tool
                 if (hire)
                 {
                     Label garageLabel = new Label();
-                    garageLabel.Text = "Garagem:";
+                    garageLabel.Text = "Garage:";
                     garageLabel.Location = new System.Drawing.Point(16, top);
                     garageLabel.AutoSize = true;
 
@@ -804,7 +805,7 @@ namespace TS_SE_Tool
                 }
 
                 Label driverLabel = new Label();
-                driverLabel.Text = hire ? "Motorista no recrutamento:" : "Motorista empregado:";
+                driverLabel.Text = hire ? "Driver in the recruitment list:" : "Employed driver:";
                 driverLabel.Location = new System.Drawing.Point(16, top);
                 driverLabel.AutoSize = true;
 
@@ -816,18 +817,18 @@ namespace TS_SE_Tool
                 driverBox.DataSource = drivers;
 
                 Label noteLabel = new Label();
-                noteLabel.Text = "Sem custo - o save e alterado diretamente.";
+                noteLabel.Text = "No cost - the save is edited directly.";
                 noteLabel.Location = new System.Drawing.Point(16, top + 56);
                 noteLabel.AutoSize = true;
 
                 Button okButton = new Button();
-                okButton.Text = hire ? "Contratar" : "Demitir";
+                okButton.Text = hire ? "Hire" : "Fire";
                 okButton.Location = new System.Drawing.Point(354, 160);
                 okButton.Size = new System.Drawing.Size(90, 30);
                 okButton.DialogResult = DialogResult.OK;
 
                 Button cancelButton = new Button();
-                cancelButton.Text = "Cancelar";
+                cancelButton.Text = "Cancel";
                 cancelButton.Location = new System.Drawing.Point(454, 160);
                 cancelButton.Size = new System.Drawing.Size(90, 30);
                 cancelButton.DialogResult = DialogResult.Cancel;
@@ -868,8 +869,8 @@ namespace TS_SE_Tool
                 else
                 {
                     if (MessageBox.Show(
-                            "Demitir " + selectedDriver.Id + " ?" + Environment.NewLine + Environment.NewLine +
-                            "O lugar na garagem fica livre e o motorista sai do quadro da empresa.",
+                            "Fire " + selectedDriver.Id + " ?" + Environment.NewLine + Environment.NewLine +
+                            "The garage slot becomes free and the driver leaves the company roster.",
                             "RC5.1H23", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                         return;
 
@@ -887,6 +888,45 @@ namespace TS_SE_Tool
         private void InitializeModernDriverHireH23()
         {
             EnsureModernDriverMenusH23();
+
+            if (!IsModernCompatibilityMode())
+                return;
+
+            EnableModernDriverButtonsH23();
+        }
+
+        // H20 deliberately disabled the Hire/Fire controls of the company tab because
+        // the contract was never proven. Now that both operations are implemented for
+        // modern saves, the same two controls drive them instead of opening a separate
+        // dialog from the menu.
+        private void EnableModernDriverButtonsH23()
+        {
+            if (!ModernDriverButtonsWiredH23)
+            {
+                buttonUserCompanyDriversHire.Click -= buttonUserCompanyDriversHire_Click;
+                buttonUserCompanyDriversHire.Click += delegate { ShowModernDriverDialogH23(true); };
+
+                buttonUserCompanyDriversFire.Click -= buttonUserCompanyDriversFire_Click;
+                buttonUserCompanyDriversFire.Click += delegate { ShowModernDriverDialogH23(false); };
+
+                contextMenuStripCompanyDriversHire.Click -= contextMenuStripCompanyDriversHire_Click;
+                contextMenuStripCompanyDriversHire.Click += delegate { ShowModernDriverDialogH23(true); };
+
+                contextMenuStripCompanyDriversFire.Click -= contextMenuStripCompanyDriversFire_Click;
+                contextMenuStripCompanyDriversFire.Click += delegate { ShowModernDriverDialogH23(false); };
+
+                ModernDriverButtonsWiredH23 = true;
+            }
+
+            buttonUserCompanyDriversHire.Enabled = true;
+            buttonUserCompanyDriversFire.Enabled = true;
+            contextMenuStripCompanyDriversHire.Enabled = true;
+            contextMenuStripCompanyDriversFire.Enabled = true;
+
+            toolTipMain.SetToolTip(buttonUserCompanyDriversHire,
+                "RC5.1H23: hire a driver from the recruitment list into a garage with a free slot.");
+            toolTipMain.SetToolTip(buttonUserCompanyDriversFire,
+                "RC5.1H23: fire an employed driver, freeing his garage slot.");
         }
     }
 }
