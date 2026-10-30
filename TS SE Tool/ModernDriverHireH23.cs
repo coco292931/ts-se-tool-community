@@ -855,15 +855,49 @@ namespace TS_SE_Tool
                 return false;
             }
 
-            // 4) pull him out of the recruitment list - do this last,
-            //    it is the only step that removes a line
-            int offerIndex = IndexOfModernArrayItemH23(lines, "economy", "drivers_offer", driverId);
-            if (offerIndex >= 0)
+            // 4) free his place in the recruitment list. drivers_offer has a fixed
+            //    length (unlocked_recruitments) and the game indexes it by slot, so it
+            //    must never shrink: removing an entry makes the game read past the end
+            //    of the array ("Index outside array boundaries") and crash. The game
+            //    refills the slot with a driver taken from the pool instead, which is
+            //    what happens here.
+            int offerPos = IndexOfModernArrayItemH23(lines, "economy", "drivers_offer", driverId);
+            if (offerPos >= 0)
             {
-                if (!RemoveModernArrayItemAtH23(lines, "economy", "drivers_offer", offerIndex))
+                int offerCountIdx;
+                List<int> offerIdx;
+                int offerDeclared;
+                int poolCountIdx;
+                List<int> poolIdx;
+                int poolDeclared;
+
+                if (GetModernArrayCountH23(lines, "economy", "drivers_offer", out offerCountIdx, out offerIdx, out offerDeclared) < 0 ||
+                    GetModernArrayCountH23(lines, "economy", "driver_pool", out poolCountIdx, out poolIdx, out poolDeclared) < 0)
                 {
                     message = ModernDriverTextH23("modernDriverHireH23ErrOfferRemove",
-                        "Could not remove the driver from the recruitment list.");
+                        "Could not update the recruitment list.");
+                    return false;
+                }
+
+                if (poolIdx.Count == 0)
+                {
+                    message = ModernDriverTextH23("modernDriverHireH23ErrPoolEmpty",
+                        "The driver pool is empty, the recruitment list cannot be refilled.");
+                    return false;
+                }
+
+                int lastPoolLine = poolIdx[poolIdx.Count - 1];
+                int poolColon = lines[lastPoolLine].IndexOf(": ", StringComparison.Ordinal);
+                string replacement = lines[lastPoolLine].Substring(poolColon + 2).Trim();
+
+                int offerLine = offerIdx[offerPos];
+                int offerColon = lines[offerLine].IndexOf(": ", StringComparison.Ordinal);
+                lines[offerLine] = lines[offerLine].Substring(0, offerColon + 2) + replacement;
+
+                if (!RemoveModernArrayItemAtH23(lines, "economy", "driver_pool", poolIdx.Count - 1))
+                {
+                    message = ModernDriverTextH23("modernDriverHireH23ErrOfferRemove",
+                        "Could not update the recruitment list.");
                     return false;
                 }
             }
